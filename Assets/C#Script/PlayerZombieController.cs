@@ -1,40 +1,34 @@
 using UnityEngine;
-using UnityEngine.UI; // ボタン用
+using UnityEngine.UI;
 
 public class PlayerZombieController : MonoBehaviour
 {
-    public float moveSpeed = 3f;       // 通常移動速度
-    public float dashSpeed = 6f;       // ダッシュ時の速度（通常の2倍とか）
+    public float moveSpeed = 0.00002f;    // 超スロー歩行速度（1秒で2cm進むイメージ）
+    public float dashSpeed = 0.1f;     // 遅めのダッシュ速度（1秒で10cm進むイメージ）
     public FixedJoystick joystick;     // ジョイスティックUI
-    public float biteRange = 1.5f;     // 噛みつき有効距離
-    public LayerMask humanLayer;       // 噛みつく対象のレイヤー
-    public Animator animator;          // アニメーション制御
+    public Animator animator;          // アニメーター
+    public Button dashButton;          // ダッシュボタン
+    public Rigidbody rb;               // Rigidbody（物理演算用）
 
-    public Button dashButton;          // UIのダッシュボタン
-
-    private bool isDashing = false;    // 現在ダッシュ中かどうか
-    private float dashDuration = 5f;   // ダッシュ持続時間（秒）
-    private float dashTimer = 0f;      // ダッシュ経過時間
+    private bool isDashing = false;
+    private float dashDuration = 5f;
+    private float dashTimer = 0f;
 
     void Start()
     {
         if (dashButton != null)
-        {
             dashButton.onClick.AddListener(OnDashButtonPressed);
-        }
     }
 
-    void Update()
+    void FixedUpdate()
     {
         Vector3 direction = new Vector3(joystick.Horizontal, 0, joystick.Vertical);
 
-        // ダッシュ時間のカウントダウン
         if (isDashing)
         {
-            dashTimer -= Time.deltaTime;
+            dashTimer -= Time.fixedDeltaTime;
             if (dashTimer <= 0f)
             {
-                // ダッシュ終了
                 isDashing = false;
                 dashTimer = 0f;
             }
@@ -43,42 +37,30 @@ public class PlayerZombieController : MonoBehaviour
         if (direction.magnitude > 0.1f)
         {
             float speed = isDashing ? dashSpeed : moveSpeed;
-
-            transform.Translate(direction.normalized * speed * Time.deltaTime, Space.World);
+            Vector3 move = direction.normalized * speed;
+            rb.MovePosition(rb.position + move * Time.fixedDeltaTime);
             transform.rotation = Quaternion.LookRotation(direction);
 
             animator.SetBool("isWalking", true);
             animator.SetBool("isDashing", isDashing);
+            animator.speed = isDashing ? 2.0f : 1.2f;  // アニメーションも遅く設定
         }
         else
         {
             animator.SetBool("isWalking", false);
             animator.SetBool("isDashing", false);
+            animator.speed = 0.2f;
         }
     }
 
-    // ダッシュボタンが押されたときに呼ばれる
     public void OnDashButtonPressed()
     {
-        // ダッシュ中じゃなければ開始
         if (!isDashing)
         {
             isDashing = true;
             dashTimer = dashDuration;
         }
     }
-
-    // スタミナなどの制御で外部から呼び出せる場合（必要に応じて）
-    public void SetCanDash(bool value)
-    {
-        if (!value)
-        {
-            // 強制的にダッシュ終了
-            isDashing = false;
-            dashTimer = 0f;
-        }
-    }
-
 
 
     // UIボタンから呼び出される「噛みつき」処理
