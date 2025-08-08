@@ -1,62 +1,95 @@
 using UnityEngine;
+using UnityEngine.AI;  // NavMeshç”¨API
 
-public class MobHumanController : MonoBehaviour
+// NavMeshã®ç”Ÿæˆï¼ˆãƒ™ã‚¤ã‚¯ï¼‰ã‚’ç®¡ç†ã™ã‚‹ã‚¹ã‚¯ãƒªãƒ—ãƒˆ
+// ã“ã‚Œã‚’NavMeshSurfaceãŒä»˜ã„ãŸGameObjectã«ã‚¢ã‚¿ãƒƒãƒã—ã¾ã™
+[RequireComponent(typeof(NavMeshSurface))]
+public class NavMeshSetup : MonoBehaviour
 {
-    [Header("ˆÚ“®‘¬“x")]
-    public float moveSpeed = 2f;           // ’Êí•à‚­‘¬‚³
-    public float escapeSpeed = 3.5f;       // “¦‚°‚é‘¬‚³
+    private NavMeshSurface surface;
 
-    [Header("“¦‚°‚éŠÔ")]
-    public float escapeDuration = 5f;      // ƒ]ƒ“ƒrŒŸ’m‚É“¦‚°‚é•b”
-
-    [Header("ŒŸ’m”ÍˆÍ")]
-    public float detectRange = 5f;         // ƒ]ƒ“ƒr‚ğŒŸ’m‚·‚é‹——£
-
-    [Header("ƒAƒjƒ[ƒ^[")]
-    public Animator animator;              // Animator‚ğƒZƒbƒgiInspector‚©‚çj
-
-    private Vector3 targetDir;             // ’Êí‚ÌˆÚ“®•ûŒü
-    private float moveTimer;               // ’Êís“®‚Ì•ûŒü•ÏXƒ^ƒCƒ}[
-
-    private bool isEscaping = false;       // “¦‚°‚Ä‚¢‚é‚©
-    private float escapeTimer = 0f;         // “¦‚°‚éc‚èŠÔ
-
-    private Transform playerZombie;         // ƒ]ƒ“ƒr‚ÌTransform
+    void Awake()
+    {
+        // NavMeshSurfaceã‚³ãƒ³ãƒãƒ¼ãƒãƒ³ãƒˆã‚’å–å¾—
+        surface = GetComponent<NavMeshSurface>();
+        if (surface == null)
+            Debug.LogError("NavMeshSurfaceãŒã‚ã‚Šã¾ã›ã‚“ï¼");
+    }
 
     void Start()
     {
-        // ƒ^ƒOuPlayerv‚Ìƒ]ƒ“ƒr‚ğ’T‚·iStart‚Å1‰ñ‚¾‚¯j
+        // ã‚·ãƒ¼ãƒ³é–‹å§‹æ™‚ã«NavMeshã‚’ãƒ™ã‚¤ã‚¯ï¼ˆç”Ÿæˆï¼‰ã™ã‚‹
+        BakeNavMesh();
+    }
+
+    /// <summary>
+    /// NavMeshã‚’ç”Ÿæˆï¼ˆãƒ™ã‚¤ã‚¯ï¼‰ã™ã‚‹ãƒ¡ã‚½ãƒƒãƒ‰
+    /// </summary>
+    public void BakeNavMesh()
+    {
+        if (surface != null)
+        {
+            Debug.Log("NavMeshã®ãƒ™ã‚¤ã‚¯ã‚’é–‹å§‹ã—ã¾ã™...");
+            surface.BuildNavMesh();
+            Debug.Log("NavMeshã®ãƒ™ã‚¤ã‚¯ãŒå®Œäº†ã—ã¾ã—ãŸï¼");
+        }
+    }
+}
+
+
+// NavMeshAgentã‚’ä½¿ã„ã€ã‚¾ãƒ³ãƒ“ã‹ã‚‰é€ƒã’ã‚‹æ•µã‚­ãƒ£ãƒ©ã®æŒ™å‹•ã‚’åˆ¶å¾¡ã™ã‚‹ã‚¹ã‚¯ãƒªãƒ—ãƒˆ
+public class MobHumanController : MonoBehaviour
+{
+    [Header("ç§»å‹•é€Ÿåº¦")]
+    public float moveSpeed = 2f;        // é€šå¸¸ç§»å‹•é€Ÿåº¦
+    public float escapeSpeed = 3.5f;    // é€ƒèµ°æ™‚ã®é€Ÿåº¦
+
+    [Header("é€ƒèµ°æ™‚é–“")]
+    public float escapeDuration = 5f;   // é€ƒã’ç¶šã‘ã‚‹æ™‚é–“ï¼ˆç§’ï¼‰
+
+    [Header("æ„ŸçŸ¥ç¯„å›²")]
+    public float detectRange = 5f;      // ã‚¾ãƒ³ãƒ“ã‚’æ„ŸçŸ¥ã™ã‚‹ç¯„å›²
+
+    [Header("é€ƒèµ°åœ°ç‚¹")]
+    public Transform escapeTarget;      // é€ƒã’ã‚‹ã¹ããƒã‚¤ãƒ³ãƒˆï¼ˆInspectorã‹ã‚‰ã‚»ãƒƒãƒˆï¼‰
+
+    [Header("ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚¿ãƒ¼")]
+    public Animator animator;           // ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³åˆ¶å¾¡ç”¨
+
+    private NavMeshAgent agent;         // NavMeshAgentã‚³ãƒ³ãƒãƒ¼ãƒãƒ³ãƒˆ
+    private Transform playerZombie;     // ã‚¾ãƒ³ãƒ“ã®Transform
+
+    private bool isEscaping = false;    // ç¾åœ¨é€ƒã’ã¦ã„ã‚‹ã‹ã©ã†ã‹
+    private float escapeTimer = 0f;     // é€ƒèµ°æ™‚é–“ã®ã‚«ã‚¦ãƒ³ãƒˆãƒ€ã‚¦ãƒ³
+
+    void Start()
+    {
+        // ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ï¼ˆã‚¾ãƒ³ãƒ“ï¼‰ã‚’ã‚¿ã‚°æ¤œç´¢ã§å–å¾—
         GameObject playerObj = GameObject.FindWithTag("Player");
         if (playerObj != null)
             playerZombie = playerObj.transform;
 
-        // Å‰‚ÌˆÚ“®•ûŒü‚ğŒˆ‚ß‚Ä‚¨‚­
-        SetRandomDirection();
+        // NavMeshAgentã‚’å–å¾—ã€‚å¿…ãšã‚¢ã‚¿ãƒƒãƒãŒå¿…è¦
+        agent = GetComponent<NavMeshAgent>();
+        if (agent == null)
+            Debug.LogError("NavMeshAgentã‚³ãƒ³ãƒãƒ¼ãƒãƒ³ãƒˆãŒå¿…è¦ã§ã™ã€‚");
+
+        // åˆæœŸé€Ÿåº¦ã¯é€šå¸¸é€Ÿåº¦ã«è¨­å®š
+        agent.speed = moveSpeed;
     }
 
     void Update()
     {
-        if (animator != null)
+        if (playerZombie == null || escapeTarget == null) return;
+
+        // ã‚¾ãƒ³ãƒ“ã¨ã®è·é›¢ã‚’è¨ˆç®—
+        float distToZombie = Vector3.Distance(transform.position, playerZombie.position);
+
+        // ã‚¾ãƒ³ãƒ“ãŒæ„ŸçŸ¥ç¯„å›²ã«å…¥ã£ãŸã‚‰é€ƒèµ°é–‹å§‹
+        if (distToZombie < detectRange && !isEscaping)
         {
-            Debug.Log($"isWalking: {animator.GetBool("isWalking")}, isRunning: {animator.GetBool("isRunning")}");
-        }
-        if (playerZombie == null) return;  // ƒ]ƒ“ƒr‚ª‚¢‚È‚¯‚ê‚Î‰½‚à‚µ‚È‚¢
-
-        float dist = Vector3.Distance(transform.position, playerZombie.position);
-
-        if (dist < detectRange)
-        {
-            // ƒ]ƒ“ƒr‚ğŒŸ’m‚µ‚½‚ç“¦‚°‚é
-            if (!isEscaping)
-            {
-                isEscaping = true;
-                escapeTimer = escapeDuration;
-
-                // U‚èŒü‚­iƒ]ƒ“ƒr‚Ì‹t•ûŒüj
-                Vector3 dir = (transform.position - playerZombie.position).normalized;
-                if (dir != Vector3.zero)
-                    transform.rotation = Quaternion.LookRotation(dir);
-            }
+            isEscaping = true;
+            escapeTimer = escapeDuration;
         }
 
         if (isEscaping)
@@ -69,39 +102,52 @@ public class MobHumanController : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// é€ƒèµ°æ™‚ã®æŒ™å‹•
+    /// </summary>
     void EscapeBehavior()
     {
+        // é€ƒèµ°æ™‚é–“ã‚’æ¸›ã‚‰ã™
         escapeTimer -= Time.deltaTime;
 
-        // ƒ]ƒ“ƒr‚©‚ç“¦‚°‚é•ûŒü
-        Vector3 escapeDir = (transform.position - playerZombie.position).normalized;
-        transform.Translate(escapeDir * escapeSpeed * Time.deltaTime, Space.World);
+        // é€ƒèµ°æ–¹å‘ã‚’è¨ˆç®—ï¼ˆé€ƒèµ°åœ°ç‚¹ã«å‘ã‹ã†ï¼‰
+        Vector3 escapeDir = (escapeTarget.position - transform.position).normalized;
 
-        // ‘–‚éƒAƒjƒ[ƒVƒ‡ƒ“i—áj
+        // NavMeshAgent ã«ç›®çš„åœ°ã‚’è¨­å®šã—ã¦ç§»å‹•
+        agent.speed = escapeSpeed;
+        agent.SetDestination(transform.position + escapeDir * 5f); // 5må…ˆã®æ–¹å‘ã¸é€ƒã’ã‚‹
+
+        // ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³ã‚’èµ°ã‚‹ãƒ¢ãƒ¼ãƒ‰ã«
         if (animator != null)
         {
             animator.SetBool("isWalking", false);
             animator.SetBool("isRunning", true);
-            animator.speed = 1.5f;  // ƒAƒjƒ[ƒVƒ‡ƒ“‘¬“x’²®‰Â”\
+            animator.speed = 1.5f;
         }
 
+        // é€ƒèµ°åœ°ç‚¹ã«è¿‘ã¥ã„ãŸã‚‰ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆã‚’æ¶ˆã™ï¼ˆã‚²ãƒ¼ãƒ ã‹ã‚‰æ’é™¤ï¼‰
+        float distToEscape = Vector3.Distance(transform.position, escapeTarget.position);
+        if (distToEscape < 1f)
+        {
+            Destroy(gameObject);
+            return;
+        }
+
+        // é€ƒèµ°æ™‚é–“ãŒå°½ããŸã‚‰çŠ¶æ…‹ã‚’åˆ‡ã‚Šæ›¿ãˆ
         if (escapeTimer <= 0f)
         {
-            // “¦‚°‚éŠÔI—¹
-            isEscaping = false;
+            float distToZombie = Vector3.Distance(transform.position, playerZombie.position);
 
-            // ƒ]ƒ“ƒr‚ª‚Ü‚¾‚¢‚é‚©ƒ`ƒFƒbƒNi•K—v‚È‚çj
-            float dist = Vector3.Distance(transform.position, playerZombie.position);
-            if (dist < detectRange)
+            // ã¾ã ã‚¾ãƒ³ãƒ“ãŒè¿‘ã‘ã‚Œã°é€ƒèµ°ç¶™ç¶š
+            if (distToZombie < detectRange)
             {
-                // ‚à‚¤ˆê“x“¦‚°‚é‚©A‚±‚±‚Í©—R‚É’²®‚µ‚Ä‚­‚¾‚³‚¢
-                isEscaping = true;
                 escapeTimer = escapeDuration;
             }
             else
             {
-                // ’Êís“®‚Ö–ß‚é
-                SetRandomDirection();
+                // é€ƒèµ°çµ‚äº†ã€é€šå¸¸ãƒ¢ãƒ¼ãƒ‰ã«æˆ»ã‚‹
+                isEscaping = false;
+                agent.speed = moveSpeed;
 
                 if (animator != null)
                 {
@@ -113,31 +159,23 @@ public class MobHumanController : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// é€šå¸¸æ™‚ã®æŒ™å‹•ï¼ˆä»Šã¯åœæ­¢çŠ¶æ…‹ï¼‰
+    /// </summary>
     void NormalBehavior()
     {
-        moveTimer -= Time.deltaTime;
-        if (moveTimer <= 0f)
+        // NavMeshAgentã‚’æ­¢ã‚ã‚‹
+        if (agent != null)
         {
-            SetRandomDirection();
+            agent.SetDestination(transform.position); // ç§»å‹•åœæ­¢
         }
 
-        if (targetDir != Vector3.zero)
-        {
-            transform.Translate(targetDir * moveSpeed * Time.deltaTime, Space.World);
-            transform.rotation = Quaternion.LookRotation(targetDir);
-        }
-
+        // ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³ã‚’æ­©ããƒ¢ãƒ¼ãƒ‰ã«ï¼ˆå¿…è¦ã«å¿œã˜ã¦å¤‰æ›´ï¼‰
         if (animator != null)
         {
             animator.SetBool("isWalking", true);
             animator.SetBool("isRunning", false);
             animator.speed = 1f;
         }
-    }
-
-    void SetRandomDirection()
-    {
-        targetDir = new Vector3(Random.Range(-1f, 1f), 0f, Random.Range(-1f, 1f)).normalized;
-        moveTimer = Random.Range(1f, 3f);
     }
 }
