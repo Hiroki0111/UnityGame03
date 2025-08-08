@@ -7,7 +7,8 @@ public class PlayerZombieController : MonoBehaviour
     public float dashSpeed = 0.1f;     // 遅めのダッシュ速度（1秒で10cm進むイメージ）
     public FixedJoystick joystick;     // ジョイスティックUI
     public Animator animator;          // アニメーター
-    public Button dashButton;          // ダッシュボタン
+    public Button dashButton;
+    public Button AttckButton;// ダッシュボタン
     public Rigidbody rb;               // Rigidbody（物理演算用）
 
     private bool isDashing = false;

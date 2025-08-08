@@ -16,4 +16,5 @@ public class InfectionManager : MonoBehaviour
         Destroy(human);
         Instantiate(mobZombiePrefab, pos, rot);
     }
+
 }

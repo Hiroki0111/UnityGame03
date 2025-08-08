@@ -34,15 +34,7 @@ public class MobZombieController : MonoBehaviour
         {
             animator = GetComponent<Animator>();
         }
-        if (animator != null)
-        {
-            Debug.Log("Attackトリガー発動");
-            animator.SetTrigger("Attack");
-        }
-        else
-        {
-            Debug.LogError("Animatorがnull");
-        }
+        
     }
 
     void Update()
@@ -109,22 +101,32 @@ public class MobZombieController : MonoBehaviour
     {
         isAttacking = true;
         agent.isStopped = true;
-        Debug.LogError("attackメソッドは行われてる");
+
+        Debug.Log("Attackトリガー発動");
         if (animator != null)
         {
             animator.SetTrigger("Attack");
         }
 
-        // 感染まで待機（攻撃モーションに合わせて調整）
-        yield return new WaitForSeconds(0.7f); // アニメーションに合わせて調整
+        // 攻撃アニメーションに合わせて待機
+        yield return new WaitForSeconds(0.7f);
 
         if (targetHuman != null)
         {
             InfectionManager.Instance.Infect(targetHuman);
+            targetHuman = null;
         }
 
-        targetHuman = null;
         agent.isStopped = false;
         isAttacking = false;
     }
+    void OnTriggerEnter(Collider other)
+    {
+        if (other.CompareTag("Human"))
+        {
+            Debug.Log("人間に接触！攻撃開始！");
+            StartCoroutine(AttackAndInfect());
+        }
+    }
+
 }
