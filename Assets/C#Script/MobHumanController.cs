@@ -62,6 +62,13 @@ public class MobHumanController : MonoBehaviour
     private bool isEscaping = false;    // 現在逃げているかどうか
     private float escapeTimer = 0f;     // 逃走時間のカウントダウン
 
+    // ▼ 追加（クラスの上部にフィールドを追加） ▼
+    [Header("徘徊行動")]
+    public float wanderRadius = 10f;           // 徘徊の半径
+    public float wanderInterval = 5f;          // 徘徊地点変更の間隔
+    private float wanderTimer = 0f;            // 徘徊用タイマー
+    private Vector3 currentWanderTarget;       // 現在の徘徊目標地点
+
     void Start()
     {
         // プレイヤー（ゾンビ）をタグ検索で取得
@@ -164,18 +171,45 @@ public class MobHumanController : MonoBehaviour
     /// </summary>
     void NormalBehavior()
     {
-        // NavMeshAgentを止める
-        if (agent != null)
+        // タイマー更新
+        wanderTimer += Time.deltaTime;
+
+        // 一定時間ごとに新しい目標を設定
+        if (wanderTimer >= wanderInterval || agent.remainingDistance < 0.5f)
         {
-            agent.SetDestination(transform.position); // 移動停止
+            currentWanderTarget = GetRandomWanderTarget();
+            agent.SetDestination(currentWanderTarget);
+            wanderTimer = 0f;
         }
 
-        // アニメーションを歩くモードに（必要に応じて変更）
+        // アニメーションを歩くモードに
         if (animator != null)
         {
             animator.SetBool("isWalking", true);
             animator.SetBool("isRunning", false);
             animator.speed = 1f;
         }
+
+        // ゆっくり歩く速度
+        agent.speed = moveSpeed;
     }
+
+    /// <summary>
+    /// NavMesh内のランダムな徘徊地点を取得
+    /// </summary>
+    Vector3 GetRandomWanderTarget()
+    {
+        Vector3 randomDirection = Random.insideUnitSphere * wanderRadius;
+        randomDirection += transform.position;
+
+        NavMeshHit navHit;
+        if (NavMesh.SamplePosition(randomDirection, out navHit, wanderRadius, NavMesh.AllAreas))
+        {
+            return navHit.position;
+        }
+
+        // NavMesh内が見つからなかった場合は現在地
+        return transform.position;
+    }
+
 }
