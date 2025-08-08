@@ -42,7 +42,7 @@ public class MobHumanController : MonoBehaviour
 {
     [Header("移動速度")]
     public float moveSpeed = 2f;        // 通常移動速度
-    public float escapeSpeed = 3.5f;    // 逃走時の速度
+    public float escapeSpeed = 5.5f;    // 逃走時の速度
 
     [Header("逃走時間")]
     public float escapeDuration = 5f;   // 逃げ続ける時間（秒）
