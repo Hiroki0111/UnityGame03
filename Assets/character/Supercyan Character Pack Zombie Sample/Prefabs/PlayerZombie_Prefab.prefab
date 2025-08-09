@@ -373,6 +373,11 @@ MonoBehaviour:
   animator: {fileID: 4763697378789955991}
   dashButton: {fileID: 0}
   rb: {fileID: 2022750626909624514}
+  attackRange: 1
+  humanLayer:
+    serializedVersion: 2
+    m_Bits: 0
+  attackInterval: 2
 --- !u!65 &1265536837321440097
 BoxCollider:
   m_ObjectHideFlags: 0

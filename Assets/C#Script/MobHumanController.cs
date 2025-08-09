@@ -72,7 +72,7 @@ public class MobHumanController : MonoBehaviour
     void Start()
     {
         // プレイヤー（ゾンビ）をタグ検索で取得
-        GameObject playerObj = GameObject.FindWithTag("Player");
+        GameObject playerObj = GameObject.FindWithTag("zombie");
         if (playerObj != null)
             playerZombie = playerObj.transform;
 

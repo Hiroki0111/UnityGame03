@@ -5575,37 +5575,6 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 2.166089, y: 2.1728504, z: 0.33355707}
   m_Center: {x: -1.0808265, y: 1.0863007, z: -0.16147816}
---- !u!1 &196703401
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 196703402}
-  m_Layer: 0
-  m_Name: Buils
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &196703402
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 196703401}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 73.75079, y: 0, z: 51.79131}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &199503949
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -54731,6 +54700,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: PlayerZombie_Prefab
       objectReference: {fileID: 0}
+    - target: {fileID: 4763697378797382191, guid: 2fc45aece7716d54da6c97b723338992, type: 3}
+      propertyPath: m_TagString
+      value: zombie
+      objectReference: {fileID: 0}
     - target: {fileID: 7118658034755257419, guid: 2fc45aece7716d54da6c97b723338992, type: 3}
       propertyPath: joystick
       value: 
@@ -54759,7 +54732,6 @@ SceneRoots:
   - {fileID: 880846337}
   - {fileID: 486162007}
   - {fileID: 926936950}
-  - {fileID: 196703402}
   - {fileID: 1338549522}
   - {fileID: 1027764375}
   - {fileID: 257671293}
