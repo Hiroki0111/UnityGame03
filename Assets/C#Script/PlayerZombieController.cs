@@ -111,6 +111,7 @@ public class PlayerZombieController : MonoBehaviour
     {
         if (other.CompareTag("Human"))
         {
+            targetHuman = other.gameObject;
             Debug.Log("人間に接触 → 攻撃開始");
             StartCoroutine(AttackAndInfect());
         }
