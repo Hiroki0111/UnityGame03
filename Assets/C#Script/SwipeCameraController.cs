@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public class FollowCamera : MonoBehaviour
+public class SwipeCameraController : MonoBehaviour
 {
     [Tooltip("追従対象のゾンビ")]
     public Transform target;
@@ -20,33 +20,87 @@ public class FollowCamera : MonoBehaviour
     [Tooltip("カメラの回転追従速度")]
     public float rotationFollowSpeed = 10f;
 
+    [Tooltip("スワイプの感度")]
+    public float swipeSensitivity = 0.2f;
+
     private Vector3 currentVelocity;
+    private float angleY = 0f;
+    private Vector2 lastTouchPosition;
+    private bool isDragging = false;
+
+    void Update()
+    {
+        HandleSwipeInput();
+    }
 
     void LateUpdate()
     {
         if (target == null) return;
 
-        // Y軸だけを使った方向ベクトル
-        Vector3 forward = target.forward;
-        forward.y = 0f;
-        forward.Normalize();
+        // スワイプで回転させた方向をもとにカメラ位置を決定
+        Quaternion rotation = Quaternion.Euler(0f, angleY, 0f);
+        Vector3 offset = rotation * Vector3.back * distanceBehind;
 
-        // 上下を少し追従する高さ計算
+        // 高さを追従して調整
         float targetHeight = Mathf.Lerp(
             target.position.y + heightOffset,
             heightOffset,
             1f - heightFollowFactor
         );
 
-        // 理想位置
-        Vector3 desiredPosition = target.position - forward * distanceBehind;
+        Vector3 desiredPosition = target.position + offset;
         desiredPosition.y = targetHeight;
 
-        // スムーズに位置を追従
+        // カメラの位置をスムーズに追従
         transform.position = Vector3.SmoothDamp(transform.position, desiredPosition, ref currentVelocity, 1f / positionFollowSpeed);
 
-        // カメラの回転も滑らかに追従
+        // カメラの回転をターゲット方向に滑らかに追従
         Quaternion targetRotation = Quaternion.LookRotation(target.position + Vector3.up * heightOffset - transform.position);
         transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, rotationFollowSpeed * Time.deltaTime);
+    }
+
+    void HandleSwipeInput()
+    {
+        if (Input.touchSupported)
+        {
+            if (Input.touchCount == 1)
+            {
+                Touch touch = Input.GetTouch(0);
+
+                if (touch.phase == TouchPhase.Began)
+                {
+                    lastTouchPosition = touch.position;
+                    isDragging = true;
+                }
+                else if (touch.phase == TouchPhase.Moved && isDragging)
+                {
+                    Vector2 delta = touch.deltaPosition;
+                    angleY += delta.x * swipeSensitivity;
+                }
+                else if (touch.phase == TouchPhase.Ended || touch.phase == TouchPhase.Canceled)
+                {
+                    isDragging = false;
+                }
+            }
+        }
+        else
+        {
+            // マウス操作（エディタやPC向け）
+            if (Input.GetMouseButtonDown(0))
+            {
+                lastTouchPosition = Input.mousePosition;
+                isDragging = true;
+            }
+            else if (Input.GetMouseButton(0) && isDragging)
+            {
+                Vector2 delta = (Vector2)Input.mousePosition - lastTouchPosition;
+                lastTouchPosition = Input.mousePosition;
+                angleY += delta.x * swipeSensitivity;
+            }
+            else if (Input.GetMouseButtonUp(0))
+            {
+                isDragging = false;
+            }
+        }
     }
 }
