@@ -3,27 +3,27 @@ using UnityEngine.AI;
 
 public class MobZombieController : MonoBehaviour
 {
-    [Header("’ÇÕİ’è")]
-    public float speed = 1.2f;
-    public float infectionDistance = 1.0f;
+    [Header("ç§»å‹•è¨­å®š")]
+    public float speed = 1.2f;                 // ã‚¾ãƒ³ãƒ“ã®ç§»å‹•é€Ÿåº¦
+    public float infectionDistance = 1.0f;     // æ„ŸæŸ“ï¼ˆæ”»æ’ƒï¼‰è·é›¢
 
-    [Header("‘{õİ’è")]
-    public float searchInterval = 1.0f;
+    [Header("æ¢ç´¢è¨­å®š")]
+    public float searchInterval = 1.0f;        // äººé–“æ¢ç´¢ã®é–“éš”ï¼ˆç§’ï¼‰
 
-    [Header("ƒAƒjƒ[ƒ^[")]
+    [Header("ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚¿ãƒ¼")]
     public Animator animator;
 
-    private GameObject targetHuman;
-    private NavMeshAgent agent;
-    private float searchTimer = 0f;
-    private bool isAttacking = false;
+    private GameObject targetHuman;            // è¿½ã„ã‹ã‘ã‚‹äººé–“
+    private NavMeshAgent agent;                // çµŒè·¯æ¢ç´¢ã‚¨ãƒ¼ã‚¸ã‚§ãƒ³ãƒˆ
+    private float searchTimer = 0f;            // æ¢ç´¢ã‚¿ã‚¤ãƒãƒ¼
+    private bool isAttacking = false;          // æ”»æ’ƒä¸­ãƒ•ãƒ©ã‚°
 
     void Start()
     {
         agent = GetComponent<NavMeshAgent>();
         if (agent == null)
         {
-            Debug.LogError("NavMeshAgent ‚ª•K—v‚Å‚·I");
+            Debug.LogError("NavMeshAgent ãŒå¿…è¦ã§ã™ï¼");
             return;
         }
 
@@ -34,19 +34,18 @@ public class MobZombieController : MonoBehaviour
         {
             animator = GetComponent<Animator>();
         }
-        
     }
 
     void Update()
     {
         if (animator == null)
-            Debug.LogError("Animator ‚ªæ“¾‚Å‚«‚Ä‚¢‚Ü‚¹‚ñI");
+            Debug.LogError("Animator ãŒå–å¾—ã§ãã¾ã›ã‚“ï¼");
 
         if (agent == null || isAttacking) return;
 
         searchTimer += Time.deltaTime;
 
-        // lŠÔ‚ğ’T‚·
+        // äººé–“ã‚’æ¢ã™
         if (targetHuman == null && searchTimer >= searchInterval)
         {
             GameObject[] humans = GameObject.FindGameObjectsWithTag("Human");
@@ -57,7 +56,7 @@ public class MobZombieController : MonoBehaviour
             searchTimer = 0f;
         }
 
-        // ’ÇÕ‚ÆUŒ‚”»’è
+        // äººé–“ã‚’è¿½ã„ã‹ã‘ã‚‹
         if (targetHuman != null)
         {
             agent.SetDestination(targetHuman.transform.position);
@@ -69,15 +68,15 @@ public class MobZombieController : MonoBehaviour
             }
         }
 
-        // ƒAƒjƒ[ƒVƒ‡ƒ“F•à‚­‚©~‚Ü‚é
+        // ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³è¨­å®š
         if (animator != null)
         {
             bool isMoving = agent.velocity.magnitude > 0.1f;
             animator.SetBool("isWalking", isMoving);
         }
-
     }
 
+    // ä¸€ç•ªè¿‘ã„äººé–“ã‚’å–å¾—
     GameObject GetClosestHuman(GameObject[] humans)
     {
         GameObject closest = null;
@@ -93,22 +92,22 @@ public class MobZombieController : MonoBehaviour
                 closest = human;
             }
         }
-
         return closest;
     }
 
+    // æ”»æ’ƒã—ã¦æ„ŸæŸ“ã•ã›ã‚‹
     System.Collections.IEnumerator AttackAndInfect()
     {
         isAttacking = true;
         agent.isStopped = true;
 
-        Debug.Log("AttackƒgƒŠƒK[”­“®");
+        Debug.Log("Attackãƒˆãƒªã‚¬ãƒ¼ç™ºå‹•");
         if (animator != null)
         {
             animator.SetTrigger("Attack");
         }
 
-        // UŒ‚ƒAƒjƒ[ƒVƒ‡ƒ“‚É‡‚í‚¹‚Ä‘Ò‹@
+        // æ”»æ’ƒã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³ã®é€”ä¸­ã§æ„ŸæŸ“
         yield return new WaitForSeconds(0.7f);
 
         if (targetHuman != null)
@@ -120,13 +119,14 @@ public class MobZombieController : MonoBehaviour
         agent.isStopped = false;
         isAttacking = false;
     }
+
+    // ã‚³ãƒ©ã‚¤ãƒ€ãƒ¼æ¥è§¦æ™‚ï¼ˆäºˆå‚™ï¼‰
     void OnTriggerEnter(Collider other)
     {
         if (other.CompareTag("Human"))
         {
-            Debug.Log("lŠÔ‚ÉÚGIUŒ‚ŠJnI");
+            Debug.Log("äººé–“ã«æ¥è§¦ â†’ æ”»æ’ƒé–‹å§‹");
             StartCoroutine(AttackAndInfect());
         }
     }
-
 }
