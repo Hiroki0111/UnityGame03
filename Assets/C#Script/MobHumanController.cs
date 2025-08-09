@@ -9,7 +9,7 @@ public class MobHumanController : MonoBehaviour
 {
     [Header("移動速度")]
     public float moveSpeed = 2f;          // 通常歩く速度
-    public float escapeSpeed = 105.5f;     // 逃走時の速度
+    public float escapeSpeed = 15.5f;     // 逃走時の速度
 
     [Header("視界検知")]
     public float detectRange = 10f;       // 視認距離
@@ -44,18 +44,31 @@ public class MobHumanController : MonoBehaviour
         if (zombieObj != null)
             playerZombie = zombieObj.transform;
 
+        
         agent = GetComponent<NavMeshAgent>();
         if (agent == null)
             Debug.LogError("NavMeshAgentが必要です");
 
         agent.speed = moveSpeed;
+        agent.acceleration = 50f;
+        agent.angularSpeed = 120f;
+
+        if (animator != null)
+            animator.applyRootMotion = false;
+        agent.ResetPath();
+        agent.speed = escapeSpeed;
+        agent.SetDestination(escapeTarget.position);
+
     }
 
     void Update()
     {
         if (playerZombie == null || escapeTarget == null) return;
 
-        // 視界内にゾンビがいたら逃げる
+        // 強制上書きで速度確認
+        agent.speed = isEscaping ? escapeSpeed : moveSpeed;
+        Debug.Log($"[Update] agent.speed = {agent.speed}");
+
         if (!isEscaping && IsZombieInView())
         {
             isEscaping = true;
@@ -71,6 +84,7 @@ public class MobHumanController : MonoBehaviour
             NormalBehavior();
         }
     }
+
 
     /// <summary>
     /// モブ人間の視界内にゾンビがいるか（距離＋視野角＋遮蔽物なし）
@@ -109,7 +123,12 @@ public class MobHumanController : MonoBehaviour
     /// </summary>
     void EscapeToTarget()
     {
-        Debug.Log("エスケープは発動してる");
+        escapeTimer -= Time.deltaTime;
+
+        agent.speed = escapeSpeed;
+        Debug.Log($"[Escape] agent.speed = {agent.speed}, velocity = {agent.velocity.magnitude}");
+
+        agent.SetDestination(escapeTarget.position);
         escapeTimer -= Time.deltaTime;
 
         agent.speed = escapeSpeed;
