@@ -19,6 +19,7 @@ public class MobZombieController : MonoBehaviour
 
     private bool isAttacking = false;
 
+    public bool isCPU = false;
     void Start()
     {
         agent = GetComponent<NavMeshAgent>();
