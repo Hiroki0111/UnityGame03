@@ -1,11 +1,11 @@
 using UnityEngine;
 using UnityEngine.AI;
 
+[RequireComponent(typeof(NavMeshAgent))]
 public class MobZombieController : MonoBehaviour
 {
     [Header("移動設定")]
     public float speed = 1.2f;
-    public float infectionDistance = 1.0f;
 
     [Header("探索設定")]
     public float searchInterval = 1.0f;
@@ -16,45 +16,29 @@ public class MobZombieController : MonoBehaviour
     private GameObject targetHuman;
     private NavMeshAgent agent;
     private float searchTimer = 0f;
+
     private bool isAttacking = false;
 
     void Start()
     {
         agent = GetComponent<NavMeshAgent>();
-        if (agent == null)
-        {
-            Debug.LogError("NavMeshAgent が必要です！");
-            return;
-        }
-
         agent.speed = speed;
-        agent.stoppingDistance = infectionDistance;
+        agent.stoppingDistance = 0.5f;
 
         if (animator == null)
-        {
             animator = GetComponent<Animator>();
-        }
     }
 
     void Update()
     {
-        if (agent == null || isAttacking) return;
+        if (isAttacking) return;
 
         searchTimer += Time.deltaTime;
 
         if (searchTimer >= searchInterval)
         {
             GameObject[] humans = GameObject.FindGameObjectsWithTag("Human");
-            if (humans.Length > 0)
-            {
-                targetHuman = GetClosestHuman(humans);
-                Debug.Log($"[MobZombie] 新ターゲット: {targetHuman.name}");
-            }
-            else
-            {
-                targetHuman = null;
-                Debug.Log("[MobZombie] ターゲットなし");
-            }
+            targetHuman = GetClosestHuman(humans);
             searchTimer = 0f;
         }
 
@@ -62,18 +46,6 @@ public class MobZombieController : MonoBehaviour
         {
             agent.SetDestination(targetHuman.transform.position);
 
-            float dist = Vector3.Distance(transform.position, targetHuman.transform.position);
-            Debug.Log($"[MobZombie] ターゲットとの距離: {dist:F2}");
-
-            if (dist <= infectionDistance && !isAttacking)
-            {
-                Debug.Log("[MobZombie] 攻撃開始");
-                StartCoroutine(AttackRoutine());
-            }
-        }
-
-        if (animator != null)
-        {
             bool isMoving = agent.velocity.magnitude > 0.1f;
             animator.SetBool("isWalking", isMoving);
         }
@@ -97,52 +69,45 @@ public class MobZombieController : MonoBehaviour
         return closest;
     }
 
-    System.Collections.IEnumerator AttackRoutine()
+    private void OnTriggerEnter(Collider other)
     {
-        isAttacking = true;
-        agent.isStopped = true;
+        if (isAttacking) return;
 
-        animator.SetTrigger("Attack");
-        Debug.Log("[MobZombie] Attack トリガー発動");
-
-        // 攻撃アニメーションが終わるまで待機（例：1秒）
-        yield return new WaitForSeconds(1.0f);
-
-        // 攻撃範囲内の最も近い人間を探す
-        GameObject attackTarget = GetClosestHumanInAttackRange();
-
-        if (attackTarget != null)
+        if (other.CompareTag("Human"))
         {
-            Debug.Log("[MobZombie] 感染処理対象: " + attackTarget.name);
-            InfectionManager.Instance.Infect(attackTarget);
+            isAttacking = true;
+            agent.isStopped = true;
+
+            animator.SetTrigger("Attack");
+            StartCoroutine(AttackAndInfect(other.gameObject));
         }
-        else
+    }
+
+    private System.Collections.IEnumerator AttackAndInfect(GameObject human)
+    {
+        yield return new WaitForSeconds(1.0f); // 攻撃アニメーションの長さに合わせて調整
+
+        if (human != null && human.CompareTag("Human"))
         {
-            Debug.LogWarning("[MobZombie] 攻撃範囲内にターゲットなし");
+            InfectionManager.Instance?.Infect(human);
         }
 
         agent.isStopped = false;
         isAttacking = false;
     }
 
-    GameObject GetClosestHumanInAttackRange()
+    // 念のため滞在時も感染（アニメーション中）
+    private void OnTriggerStay(Collider other)
     {
-        Collider[] hitColliders = Physics.OverlapSphere(transform.position, infectionDistance);
-        GameObject closest = null;
-        float minDist = Mathf.Infinity;
+        if (isAttacking) return;
 
-        foreach (var hit in hitColliders)
+        if (other.CompareTag("Human"))
         {
-            if (hit.CompareTag("Human"))
+            AnimatorStateInfo state = animator.GetCurrentAnimatorStateInfo(0);
+            if (state.IsName("Attack"))
             {
-                float dist = Vector3.Distance(transform.position, hit.transform.position);
-                if (dist < minDist)
-                {
-                    minDist = dist;
-                    closest = hit.gameObject;
-                }
+                InfectionManager.Instance?.Infect(other.gameObject);
             }
         }
-        return closest;
     }
 }

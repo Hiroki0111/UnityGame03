@@ -24706,7 +24706,7 @@ GameObject:
   - component: {fileID: 880970833}
   - component: {fileID: 880970834}
   m_Layer: 0
-  m_Name: GameObject
+  m_Name: Randomprefab
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -24742,21 +24742,21 @@ MonoBehaviour:
   navMeshSurface: {fileID: 910723421}
   prefabsToSpawn:
   - prefab: {fileID: 4117002412381013145, guid: 1ce9c6dd68c50434492fcb5eff697986, type: 3}
-    spawnCount: 20
+    spawnCount: 5
   - prefab: {fileID: 6056114068618329078, guid: 85ba95b20763e2040a2cb917a5c64f99, type: 3}
-    spawnCount: 20
+    spawnCount: 5
   - prefab: {fileID: 4339037814381819827, guid: 417cf636fdc3ff64dba9c05137f06ac7, type: 3}
-    spawnCount: 20
+    spawnCount: 5
   - prefab: {fileID: 1599251648775459342, guid: 83fef1691c7558b4c8eb4241aa0f3402, type: 3}
-    spawnCount: 20
+    spawnCount: 5
   - prefab: {fileID: 9019830062071026589, guid: 5815742bf07960942935c74197ab5069, type: 3}
-    spawnCount: 20
+    spawnCount: 5
   - prefab: {fileID: 6801728195244734270, guid: 2f4cacf4c8fada0479ffcbe6f56aa210, type: 3}
-    spawnCount: 10
+    spawnCount: 5
   - prefab: {fileID: 1789949333394776923, guid: cc0ff439a1ca25c4db1a8f41de6c1f63, type: 3}
-    spawnCount: 20
+    spawnCount: 5
   - prefab: {fileID: 2851317977839247185, guid: ca56986df8785434fb6f9d45251b63fc, type: 3}
-    spawnCount: 10
+    spawnCount: 5
 --- !u!1001 &882940858
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -52431,7 +52431,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4763697378797221455, guid: 2fc45aece7716d54da6c97b723338992, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 42.2
+      value: 10.8
       objectReference: {fileID: 0}
     - target: {fileID: 4763697378797221455, guid: 2fc45aece7716d54da6c97b723338992, type: 3}
       propertyPath: m_LocalPosition.y
@@ -52439,7 +52439,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4763697378797221455, guid: 2fc45aece7716d54da6c97b723338992, type: 3}
       propertyPath: m_LocalPosition.z
-      value: 19.1
+      value: -17
       objectReference: {fileID: 0}
     - target: {fileID: 4763697378797221455, guid: 2fc45aece7716d54da6c97b723338992, type: 3}
       propertyPath: m_LocalRotation.w
