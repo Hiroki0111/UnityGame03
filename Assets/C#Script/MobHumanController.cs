@@ -1,32 +1,28 @@
 using UnityEngine;
 using UnityEngine.AI;
 
-/// <summary>
-/// モブ人間が自分の視界にゾンビを見つけたら逃げるAI
-/// 見つけていない時は徘徊する
-/// </summary>
 public class MobHumanController : MonoBehaviour
 {
     [Header("移動速度")]
-    public float moveSpeed = 2f;          // 通常歩く速度
-    public float escapeSpeed = 15.5f;     // 逃走時の速度
+    public float moveSpeed = 2f;
+    public float escapeSpeed = 15.5f;
 
     [Header("視界検知")]
-    public float detectRange = 10f;       // 視認距離
-    public float fieldOfViewAngle = 120f; // 視野角（度）
+    public float detectRange = 10f;
+    public float fieldOfViewAngle = 120f;
 
     [Header("逃走時間")]
-    public float escapeDuration = 5f;     // 最低逃げる時間
+    public float escapeDuration = 5f;
 
     [Header("逃走地点")]
-    public Transform escapeTarget;        // 逃げるポイント
+    public Transform escapeTarget;
 
     [Header("アニメーション")]
-    public Animator animator;             // Animator参照
+    public Animator animator;
 
     [Header("徘徊設定")]
-    public float wanderRadius = 10f;      // 徘徊半径
-    public float wanderInterval = 5f;     // 目標変更間隔
+    public float wanderRadius = 10f;
+    public float wanderInterval = 5f;
 
     private NavMeshAgent agent;
     private Transform playerZombie;
@@ -39,32 +35,31 @@ public class MobHumanController : MonoBehaviour
 
     void Start()
     {
-        // ゾンビをタグで検索
         GameObject zombieObj = GameObject.FindWithTag("zombie");
         if (zombieObj != null)
             playerZombie = zombieObj.transform;
 
-
         agent = GetComponent<NavMeshAgent>();
         if (agent == null)
+        {
+            Debug.LogError("NavMeshAgent がアタッチされていません！");
+            enabled = false;
+            return;
+        }
 
-            agent.speed = moveSpeed;
         agent.acceleration = 50f;
         agent.angularSpeed = 120f;
+        agent.speed = moveSpeed;
+        agent.ResetPath();
 
         if (animator != null)
             animator.applyRootMotion = false;
-        agent.ResetPath();
-        agent.speed = escapeSpeed;
-        agent.SetDestination(escapeTarget.position);
-
     }
 
     void Update()
     {
         if (playerZombie == null || escapeTarget == null) return;
 
-        // 強制上書きで速度確認
         agent.speed = isEscaping ? escapeSpeed : moveSpeed;
 
         if (!isEscaping && IsZombieInView())
@@ -83,10 +78,6 @@ public class MobHumanController : MonoBehaviour
         }
     }
 
-
-    /// <summary>
-    /// モブ人間の視界内にゾンビがいるか（距離＋視野角＋遮蔽物なし）
-    /// </summary>
     bool IsZombieInView()
     {
         Vector3 toZombie = playerZombie.position - transform.position;
@@ -104,8 +95,6 @@ public class MobHumanController : MonoBehaviour
 
         if (Physics.Raycast(eyePos, direction, out RaycastHit hit, detectRange))
         {
-            Debug.Log("Raycastヒット：" + hit.transform.name);
-
             if (hit.transform == playerZombie)
             {
                 Debug.Log("ゾンビを視界内で発見！");
@@ -116,19 +105,9 @@ public class MobHumanController : MonoBehaviour
         return false;
     }
 
-    /// <summary>
-    /// 逃走時の行動：逃走地点に向かって走る
-    /// </summary>
     void EscapeToTarget()
     {
         escapeTimer -= Time.deltaTime;
-
-        agent.speed = escapeSpeed;
-
-        agent.SetDestination(escapeTarget.position);
-        escapeTimer -= Time.deltaTime;
-
-        agent.speed = escapeSpeed;
         agent.SetDestination(escapeTarget.position);
 
         if (animator != null)
@@ -138,14 +117,6 @@ public class MobHumanController : MonoBehaviour
             animator.speed = 1.5f;
         }
 
-        float distToEscape = Vector3.Distance(transform.position, escapeTarget.position);
-        if (distToEscape < 1f)
-        {
-            Destroy(gameObject);
-            return;
-        }
-
-        // 逃走時間が切れたら逃走終了（任意で調整可能）
         if (escapeTimer <= 0f)
         {
             isEscaping = false;
@@ -160,9 +131,6 @@ public class MobHumanController : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// 通常時の行動：NavMesh上を徘徊
-    /// </summary>
     void NormalBehavior()
     {
         wanderTimer += Time.deltaTime;
@@ -184,9 +152,6 @@ public class MobHumanController : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// NavMesh内でランダムな徘徊ターゲットを取得
-    /// </summary>
     Vector3 GetRandomWanderTarget()
     {
         Vector3 randomDirection = Random.insideUnitSphere * wanderRadius;
@@ -198,5 +163,14 @@ public class MobHumanController : MonoBehaviour
         }
 
         return transform.position;
+    }
+
+    void OnTriggerEnter(Collider other)
+    {
+        if (other.gameObject == escapeTarget.gameObject)
+        {
+            Debug.Log("[MobHuman] Escape target に到達。削除します。");
+            Destroy(gameObject);
+        }
     }
 }
