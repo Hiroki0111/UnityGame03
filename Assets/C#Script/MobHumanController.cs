@@ -44,12 +44,11 @@ public class MobHumanController : MonoBehaviour
         if (zombieObj != null)
             playerZombie = zombieObj.transform;
 
-        
+
         agent = GetComponent<NavMeshAgent>();
         if (agent == null)
-            Debug.LogError("NavMeshAgentが必要です");
 
-        agent.speed = moveSpeed;
+            agent.speed = moveSpeed;
         agent.acceleration = 50f;
         agent.angularSpeed = 120f;
 
@@ -67,7 +66,6 @@ public class MobHumanController : MonoBehaviour
 
         // 強制上書きで速度確認
         agent.speed = isEscaping ? escapeSpeed : moveSpeed;
-        Debug.Log($"[Update] agent.speed = {agent.speed}");
 
         if (!isEscaping && IsZombieInView())
         {
@@ -126,7 +124,6 @@ public class MobHumanController : MonoBehaviour
         escapeTimer -= Time.deltaTime;
 
         agent.speed = escapeSpeed;
-        Debug.Log($"[Escape] agent.speed = {agent.speed}, velocity = {agent.velocity.magnitude}");
 
         agent.SetDestination(escapeTarget.position);
         escapeTimer -= Time.deltaTime;
@@ -139,7 +136,6 @@ public class MobHumanController : MonoBehaviour
             animator.SetBool("isWalking", false);
             animator.SetBool("isRunning", true);
             animator.speed = 1.5f;
-            Debug.Log("逃げ出すアニメーションはやってる");
         }
 
         float distToEscape = Vector3.Distance(transform.position, escapeTarget.position);

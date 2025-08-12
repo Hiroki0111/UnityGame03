@@ -3,64 +3,52 @@ using UnityEngine.UI;
 
 public class PlayerZombieController : MonoBehaviour
 {
-    // 基本移動速度（超スロー）
-    public float moveSpeed = 0.00002f;
-
-    // ダッシュ移動速度（遅め）
-    public float dashSpeed = 0.1f;
-
-    // ジョイスティックUIコンポーネント（操作入力用）
+    public float moveSpeed = 2f;
+    public float dashSpeed = 5f;
     public FixedJoystick joystick;
-
-    // プレイヤーのアニメーター（歩行・攻撃など制御）
     public Animator animator;
-
-    // ダッシュボタンUI
     public Button dashButton;
-
-    // 物理演算用Rigidbodyコンポーネント
     public Rigidbody rb;
+    public SwipeCameraController cameraController;
 
-    // 攻撃間隔（秒）
-    public float attackInterval = 2.0f;
-
-    // ダッシュ中かどうか
     private bool isDashing = false;
-
     private float dashDuration = 5f;
     private float dashTimer = 0f;
 
-
-    private bool isAttacking = false;
-    private GameObject targetHuman;
+    // 攻撃対象を記録してアニメ後に感染
+    private GameObject currentTarget;
 
     void Start()
     {
         if (dashButton != null)
             dashButton.onClick.AddListener(OnDashButtonPressed);
+
+        if (cameraController != null)
+            cameraController.ResetCameraBehindTarget();
     }
 
     void FixedUpdate()
     {
-        // 移動処理（ジョイスティック操作）
-        Vector3 direction = new Vector3(joystick.Horizontal, 0, joystick.Vertical);
+        Vector3 camForward = Camera.main.transform.forward;
+        Vector3 camRight = Camera.main.transform.right;
 
-        if (isDashing)
-        {
-            dashTimer -= Time.fixedDeltaTime;
-            if (dashTimer <= 0f)
-            {
-                isDashing = false;
-                dashTimer = 0f;
-            }
-        }
+        camForward.y = 0f;
+        camRight.y = 0f;
 
-        if (direction.magnitude > 0.1f)
+        camForward.Normalize();
+        camRight.Normalize();
+
+        Vector3 inputDirection = camForward * joystick.Vertical + camRight * joystick.Horizontal;
+
+        if (inputDirection.magnitude > 0.1f)
         {
+            inputDirection.Normalize();
+
             float speed = isDashing ? dashSpeed : moveSpeed;
-            Vector3 move = direction.normalized * speed;
+            Vector3 move = inputDirection * speed;
+
             rb.MovePosition(rb.position + move * Time.fixedDeltaTime);
-            transform.rotation = Quaternion.LookRotation(direction);
+            transform.rotation = Quaternion.LookRotation(inputDirection);
 
             animator.SetBool("isWalking", true);
             animator.SetBool("isDashing", isDashing);
@@ -73,6 +61,15 @@ public class PlayerZombieController : MonoBehaviour
             animator.speed = 0.2f;
         }
 
+        if (isDashing)
+        {
+            dashTimer -= Time.fixedDeltaTime;
+            if (dashTimer <= 0f)
+            {
+                isDashing = false;
+                dashTimer = 0f;
+            }
+        }
     }
 
     public void OnDashButtonPressed()
@@ -84,36 +81,44 @@ public class PlayerZombieController : MonoBehaviour
         }
     }
 
-    System.Collections.IEnumerator AttackAndInfect()
+    public void OnCameraResetButtonPressed()
     {
-        isAttacking = true;
-
-        Debug.Log("Attackトリガー発動");
-        if (animator != null)
-        {
-            animator.SetTrigger("Attack");
-        }
-
-        // 攻撃アニメーションの途中で感染
-        yield return new WaitForSeconds(0.7f);
-
-        if (targetHuman != null)
-        {
-            InfectionManager.Instance.Infect(targetHuman);
-            targetHuman = null;
-        }
-
-        isAttacking = false;
+        if (cameraController != null)
+            cameraController.ResetCameraBehindTarget();
     }
-
-    // コライダー接触時（予備）
     void OnTriggerEnter(Collider other)
     {
         if (other.CompareTag("Human"))
         {
-            targetHuman = other.gameObject;
-            Debug.Log("人間に接触 → 攻撃開始");
-            StartCoroutine(AttackAndInfect());
+            // 攻撃トリガーセット
+            animator.SetTrigger("Attack");
+
+            // 攻撃モーション中に感染させるため、攻撃アニメーション終わりかOnTriggerStayで呼ぶ
+            InfectHuman(other.gameObject);
         }
     }
+
+    private void InfectHuman(GameObject human)
+    {
+        if (InfectionManager.Instance != null)
+        {
+            InfectionManager.Instance.Infect(human);
+        }
+    }
+
+
+    // 攻撃アニメーションの終わり付近で自動実行（モーション中も可）
+    void OnTriggerStay(Collider other)
+    {
+        if (other.CompareTag("Human"))
+        {
+            AnimatorStateInfo state = animator.GetCurrentAnimatorStateInfo(0);
+            if (state.IsName("Attack"))
+            {
+                // 攻撃モーション中なら即感染
+                InfectHuman(other.gameObject);
+            }
+        }
+    }
+
 }

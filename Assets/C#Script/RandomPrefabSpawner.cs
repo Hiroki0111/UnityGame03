@@ -1,49 +1,58 @@
 using UnityEngine;
 using UnityEngine.AI;
 using Unity.AI.Navigation;
+using System.Collections.Generic;  // Listä½¿ã†ã®ã§
+
+[System.Serializable]
+public class PrefabSpawnInfo
+{
+    public GameObject prefab;  // é…ç½®ã™ã‚‹ãƒ—ãƒ¬ãƒãƒ–ï¼ˆäººé–“ã‚­ãƒ£ãƒ©ï¼‰
+    public int spawnCount = 1; // ã“ã®ç¨®é¡ã®ãƒ—ãƒ¬ãƒãƒ–ã®ç”Ÿæˆæ•°
+}
 
 public class RandomPrefabSpawner : MonoBehaviour
 {
-    public GameObject prefabToSpawn; // ”z’u‚·‚éƒvƒŒƒnƒu
-    private NavMeshSurface navMeshSurface; // ©“®æ“¾
+    public NavMeshSurface navMeshSurface; // Inspectorã‹ã‚‰å‰²ã‚Šå½“ã¦
 
-    public int numberOfPrefabsToSpawn = 10;
+    public List<PrefabSpawnInfo> prefabsToSpawn; // ãƒ—ãƒ¬ãƒãƒ–ç¨®é¡ï¼†ç”Ÿæˆæ•°ãƒªã‚¹ãƒˆ
 
     void Start()
     {
-        // ©•ª‚É‚ ‚éƒRƒ“ƒ|[ƒlƒ“ƒg‚ğæ“¾
-        navMeshSurface = GetComponent<NavMeshSurface>();
-
         if (navMeshSurface == null)
         {
-            Debug.LogError("NavMeshSurface ‚ª‚±‚ÌƒIƒuƒWƒFƒNƒg‚É‘¶İ‚µ‚Ü‚¹‚ñB");
+            Debug.LogError("NavMeshSurface ãŒå‰²ã‚Šå½“ã¦ã‚‰ã‚Œã¦ã„ã¾ã›ã‚“ã€‚Inspectorã§è¨­å®šã—ã¦ãã ã•ã„ã€‚");
             return;
         }
 
-        for (int i = 0; i < numberOfPrefabsToSpawn; i++)
+        foreach (var info in prefabsToSpawn)
         {
-            SpawnPrefab();
+            if (info.prefab == null) continue;
+
+            for (int i = 0; i < info.spawnCount; i++)
+            {
+                SpawnPrefab(info.prefab);
+            }
         }
     }
 
-    void SpawnPrefab()
+    void SpawnPrefab(GameObject prefab)
     {
         Bounds bounds = navMeshSurface.navMeshData.sourceBounds;
 
-        Vector3 randomPosition = new Vector3(
-            Random.Range(bounds.min.x, bounds.max.x),
-            bounds.min.y,
-            Random.Range(bounds.min.z, bounds.max.z)
-        );
+        for (int tries = 0; tries < 10; tries++)
+        {
+            Vector3 randomPosition = new Vector3(
+                Random.Range(bounds.min.x, bounds.max.x),
+                bounds.min.y,
+                Random.Range(bounds.min.z, bounds.max.z)
+            );
 
-        if (NavMesh.SamplePosition(randomPosition, out NavMeshHit hit, 1.0f, NavMesh.AllAreas))
-        {
-            randomPosition = hit.position;
-            Instantiate(prefabToSpawn, randomPosition, Quaternion.identity);
+            if (NavMesh.SamplePosition(randomPosition, out NavMeshHit hit, 2.0f, NavMesh.AllAreas))
+            {
+                Instantiate(prefab, hit.position, Quaternion.identity);
+                return;
+            }
         }
-        else
-        {
-            Debug.LogWarning("NavMeshã‚ÉˆÊ’u‚ğ“Š‰e‚Å‚«‚Ü‚¹‚ñ‚Å‚µ‚½B");
-        }
+        Debug.LogWarning("NavMeshä¸Šã«é©åˆ‡ãªä½ç½®ã‚’è¦‹ã¤ã‘ã‚‰ã‚Œã¾ã›ã‚“ã§ã—ãŸã€‚");
     }
 }
