@@ -23,7 +23,7 @@ public class MobZombieController : MonoBehaviour
     {
         agent = GetComponent<NavMeshAgent>();
         agent.speed = speed;
-        agent.stoppingDistance = 0.5f;
+        agent.stoppingDistance = 1.0f; // 距離が近すぎるとすり抜ける可能性がある
 
         if (animator == null)
             animator = GetComponent<Animator>();
@@ -49,6 +49,10 @@ public class MobZombieController : MonoBehaviour
             bool isMoving = agent.velocity.magnitude > 0.1f;
             animator.SetBool("isWalking", isMoving);
         }
+        else
+        {
+            animator.SetBool("isWalking", false);
+        }
     }
 
     GameObject GetClosestHuman(GameObject[] humans)
@@ -71,43 +75,43 @@ public class MobZombieController : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
-        if (isAttacking) return;
+        if (!other.CompareTag("Human") || isAttacking) return;
 
-        if (other.CompareTag("Human"))
-        {
-            isAttacking = true;
-            agent.isStopped = true;
+        isAttacking = true;
+        agent.isStopped = true;
 
-            animator.SetTrigger("Attack");
-            StartCoroutine(AttackAndInfect(other.gameObject));
-        }
+        animator.SetTrigger("Attack");
+
+        // 即感染（演出だけアニメに任せる）
+        InfectHuman(other.gameObject);
+
+        // 少し遅れて再び移動を許可（演出のためのクールタイム）
+        Invoke(nameof(ResetAttack), 1.0f);
     }
 
-    private System.Collections.IEnumerator AttackAndInfect(GameObject human)
-    {
-        yield return new WaitForSeconds(1.0f); // 攻撃アニメーションの長さに合わせて調整
-
-        if (human != null && human.CompareTag("Human"))
-        {
-            InfectionManager.Instance?.Infect(human);
-        }
-
-        agent.isStopped = false;
-        isAttacking = false;
-    }
-
-    // 念のため滞在時も感染（アニメーション中）
     private void OnTriggerStay(Collider other)
     {
-        if (isAttacking) return;
-
         if (other.CompareTag("Human"))
         {
             AnimatorStateInfo state = animator.GetCurrentAnimatorStateInfo(0);
             if (state.IsName("Attack"))
             {
-                InfectionManager.Instance?.Infect(other.gameObject);
+                InfectHuman(other.gameObject);
             }
         }
+    }
+
+    private void InfectHuman(GameObject human)
+    {
+        if (human != null && human.CompareTag("Human") && InfectionManager.Instance != null)
+        {
+            InfectionManager.Instance.Infect(human);
+        }
+    }
+
+    private void ResetAttack()
+    {
+        isAttacking = false;
+        agent.isStopped = false;
     }
 }
