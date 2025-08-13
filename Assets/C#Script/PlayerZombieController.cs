@@ -100,11 +100,18 @@ public class PlayerZombieController : MonoBehaviour
 
     private void InfectHuman(GameObject human)
     {
+        Debug.Log("InfectHuman called on " + human.name);
         if (InfectionManager.Instance != null)
         {
-            InfectionManager.Instance.Infect(human);
+            // プレイヤー感染と仮定してfalseを渡す
+            InfectionManager.Instance.Infect(human, false);
+        }
+        else
+        {
+            Debug.LogWarning("InfectionManager instance is null!");
         }
     }
+
 
 
     // 攻撃アニメーションの終わり付近で自動実行（モーション中も可）

@@ -2,31 +2,54 @@ using UnityEngine;
 
 public class InfectionManager : MonoBehaviour
 {
-    public static InfectionManager Instance;
+    public static InfectionManager Instance { get; private set; }
 
-    public GameObject mobZombiePrefab;
+    [Header("感染後の青色ゾンビのPrefab（プレイヤー感染用）")]
+    public GameObject blueZombiePrefab;
+
+    [Header("感染後の黄色ゾンビのPrefab（CPU感染用）")]
+    public GameObject yellowZombiePrefab;
 
     private void Awake()
     {
-        if (Instance == null) Instance = this;
-        else Destroy(gameObject);
+        if (Instance == null)
+        {
+            Instance = this;
+        }
+        else
+        {
+            Destroy(gameObject);
+        }
     }
 
-    public void Infect(GameObject human)
+    /// <summary>
+    /// 人間を感染させゾンビ化させる
+    /// </summary>
+    /// <param name="human">感染対象の人間オブジェクト</param>
+    /// <param name="infectedByCPU">CPUによる感染かどうか</param>
+    public void Infect(GameObject human, bool infectedByCPU)
     {
-        Debug.Log($"[Infect] 感染対象: {human.name}");
         if (human == null) return;
 
-        // humanの位置と回転を取得
-        Vector3 pos = human.transform.position;
-        Quaternion rot = human.transform.rotation;
+        Vector3 position = human.transform.position;
+        Quaternion rotation = human.transform.rotation;
 
-        // humanオブジェクトを削除
+        GameObject zombiePrefab = infectedByCPU ? yellowZombiePrefab : blueZombiePrefab;
+
+        // 人間オブジェクトを削除
         Destroy(human);
 
-        // ゾンビPrefabを生成
-        Instantiate(mobZombiePrefab, pos, rot);
+        // 新しいゾンビを生成
+        GameObject newZombie = Instantiate(zombiePrefab, position, rotation);
 
-        Debug.Log($"[Infect] {human.name} はゾンビになりました");
+        // タグは"zombie"に統一
+        newZombie.tag = "zombie";
+
+        // CPUかプレイヤーかの判定を設定
+        MobZombieController mobController = newZombie.GetComponent<MobZombieController>();
+        if (mobController != null)
+        {
+            mobController.isCPU = infectedByCPU;
+        }
     }
 }

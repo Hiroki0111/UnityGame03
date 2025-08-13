@@ -26,12 +26,12 @@ public class GameManager : MonoBehaviour
 
     void UpdateCounts()
     {
-        // Human‚Ì”‚ğ”‚¦‚é
+        // Human ã®æ•°ã‚’å–å¾—
         GameObject[] humans = GameObject.FindGameObjectsWithTag("Human");
         int humanCount = humans.Length;
 
-        // Zombie‚Ì”‚ğ”‚¦‚éiCPU‚ÆƒvƒŒƒCƒ„[‚Å•ª‚¯‚éj
-        GameObject[] zombies = GameObject.FindGameObjectsWithTag("Zombie");
+        // Zombie ã®æ•°ã‚’å–å¾—ï¼ˆCPUã¨ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã§åˆ†é¡ï¼‰
+        GameObject[] zombies = GameObject.FindGameObjectsWithTag("zombie");
 
         int cpuCount = 0;
         int playerCount = 0;
@@ -46,9 +46,9 @@ public class GameManager : MonoBehaviour
             }
         }
 
-        // UI‚É”½‰f
-        humanCountText.text = "Humans: " + humanCount;
-        playerZombieCountText.text = "Player Zombies: " + playerCount;
-        cpuZombieCountText.text = "CPU Zombies: " + cpuCount;
+        // UIã«åæ˜ 
+        humanCountText.text = ": " + humanCount;
+        playerZombieCountText.text = ": " + playerCount;
+        cpuZombieCountText.text = ": " + cpuCount;
     }
 }

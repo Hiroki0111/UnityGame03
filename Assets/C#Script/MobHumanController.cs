@@ -25,7 +25,6 @@ public class MobHumanController : MonoBehaviour
     public float wanderInterval = 5f;
 
     private NavMeshAgent agent;
-    private Transform playerZombie;
 
     private bool isEscaping = false;
     private float escapeTimer = 0f;
@@ -35,11 +34,8 @@ public class MobHumanController : MonoBehaviour
 
     void Start()
     {
-        GameObject zombieObj = GameObject.FindWithTag("zombie");
-        if (zombieObj != null)
-            playerZombie = zombieObj.transform;
-
         agent = GetComponent<NavMeshAgent>();
+
         if (agent == null)
         {
             Debug.LogError("NavMeshAgent がアタッチされていません！");
@@ -58,11 +54,24 @@ public class MobHumanController : MonoBehaviour
 
     void Update()
     {
-        if (playerZombie == null || escapeTarget == null) return;
+        // 「zombie」タグのオブジェクトすべてを検知（CPUもプレイヤーも）
+        GameObject[] zombies = GameObject.FindGameObjectsWithTag("zombie");
+
+        if (zombies.Length == 0 || escapeTarget == null) return;
+
+        bool zombieInView = false;
+        foreach (var zombieObj in zombies)
+        {
+            if (IsZombieInView(zombieObj.transform))
+            {
+                zombieInView = true;
+                break;
+            }
+        }
 
         agent.speed = isEscaping ? escapeSpeed : moveSpeed;
 
-        if (!isEscaping && IsZombieInView())
+        if (!isEscaping && zombieInView)
         {
             isEscaping = true;
             escapeTimer = escapeDuration;
@@ -78,9 +87,9 @@ public class MobHumanController : MonoBehaviour
         }
     }
 
-    bool IsZombieInView()
+    bool IsZombieInView(Transform zombieTransform)
     {
-        Vector3 toZombie = playerZombie.position - transform.position;
+        Vector3 toZombie = zombieTransform.position - transform.position;
         float distance = toZombie.magnitude;
 
         if (distance > detectRange) return false;
@@ -95,9 +104,8 @@ public class MobHumanController : MonoBehaviour
 
         if (Physics.Raycast(eyePos, direction, out RaycastHit hit, detectRange))
         {
-            if (hit.transform == playerZombie)
+            if (hit.transform == zombieTransform)
             {
-                Debug.Log("ゾンビを視界内で発見！");
                 return true;
             }
         }
@@ -163,14 +171,5 @@ public class MobHumanController : MonoBehaviour
         }
 
         return transform.position;
-    }
-
-    void OnTriggerEnter(Collider other)
-    {
-        if (other.gameObject == escapeTarget.gameObject)
-        {
-            Debug.Log("[MobHuman] Escape target に到達。削除します。");
-            Destroy(gameObject);
-        }
     }
 }
