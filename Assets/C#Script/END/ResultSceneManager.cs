@@ -1,58 +1,63 @@
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
-using TMPro; // TextMeshPro —p
 
 public class ResultSceneManager : MonoBehaviour
 {
-    [Header("l”•\¦—pƒeƒLƒXƒgiTextMeshProUGUIj")]
-    public TextMeshProUGUI humanLeftText;
-    public TextMeshProUGUI playerConvertedText;
-    public TextMeshProUGUI cpuConvertedText;
+    [Header("äººæ•°è¡¨ç¤ºç”¨ãƒ†ã‚­ã‚¹ãƒˆ")]
+    public Text humanLeftText;
+    public Text playerConvertedText;
+    public Text cpuConvertedText;
 
-    [Header("”wŒi‰æ‘œ‚ğ•\¦‚·‚éUIiImageƒRƒ“ƒ|[ƒlƒ“ƒgj")]
+    [Header("èƒŒæ™¯ç”»åƒã‚’è¡¨ç¤ºã™ã‚‹UIï¼ˆImageã‚³ãƒ³ãƒãƒ¼ãƒãƒ³ãƒˆï¼‰")]
     public Image backgroundImage;
 
-    [Header("Ÿ—˜‚Ì”wŒiƒXƒvƒ‰ƒCƒg")]
+    [Header("å‹åˆ©æ™‚ã®èƒŒæ™¯ã‚¹ãƒ—ãƒ©ã‚¤ãƒˆ")]
     public Sprite winSprite;
 
-    [Header("”s–k‚Ì”wŒiƒXƒvƒ‰ƒCƒg")]
+    [Header("æ•—åŒ—æ™‚ã®èƒŒæ™¯ã‚¹ãƒ—ãƒ©ã‚¤ãƒˆ")]
     public Sprite loseSprite;
 
-    [Header("ƒ^ƒCƒgƒ‹‚É–ß‚éƒ{ƒ^ƒ“")]
+    [Header("ã‚¿ã‚¤ãƒˆãƒ«ã«æˆ»ã‚‹ãƒœã‚¿ãƒ³")]
     public Button backToTitleButton;
 
     void Start()
     {
-        // Null ƒ`ƒFƒbƒN
-        if (humanLeftText == null) Debug.LogError("humanLeftText ‚ªİ’è‚³‚ê‚Ä‚¢‚Ü‚¹‚ñ");
-        if (playerConvertedText == null) Debug.LogError("playerConvertedText ‚ªİ’è‚³‚ê‚Ä‚¢‚Ü‚¹‚ñ");
-        if (cpuConvertedText == null) Debug.LogError("cpuConvertedText ‚ªİ’è‚³‚ê‚Ä‚¢‚Ü‚¹‚ñ");
-        if (backgroundImage == null) Debug.LogError("backgroundImage ‚ªİ’è‚³‚ê‚Ä‚¢‚Ü‚¹‚ñ");
-        if (backToTitleButton == null) Debug.LogWarning("backToTitleButton ‚ªİ’è‚³‚ê‚Ä‚¢‚Ü‚¹‚ñ");
-
-        // ResultData ‚©‚ç’l‚ğæ“¾‚µ‚Ä•\¦
-        if (humanLeftText != null)
-            humanLeftText.text = "c‚èZl: " + ResultData.humanLeft;
-        if (playerConvertedText != null)
-            playerConvertedText.text = "Âƒ]ƒ“ƒr‚Ì”: " + ResultData.playerConverted;
-        if (cpuConvertedText != null)
-            cpuConvertedText.text = "‰©ƒ]ƒ“ƒr‚Ì”: " + ResultData.cpuConverted;
-
-        // Ÿ”s‚É‚æ‚Á‚Ä”wŒi‚ğ·‚µ‘Ö‚¦
-        if (backgroundImage != null)
-            backgroundImage.sprite = ResultData.isWin ? winSprite : loseSprite;
-
-        // ƒ{ƒ^ƒ“‚ÉƒNƒŠƒbƒNƒCƒxƒ“ƒg‚ğ’Ç‰Á
-        if (backToTitleButton != null)
+        // å„ãƒ•ã‚£ãƒ¼ãƒ«ãƒ‰ãŒ Inspector ã«ã‚»ãƒƒãƒˆã•ã‚Œã¦ã„ã‚‹ã‹ãƒã‚§ãƒƒã‚¯
+        if (humanLeftText == null || playerConvertedText == null || cpuConvertedText == null)
         {
-            backToTitleButton.onClick.AddListener(ReturnToTitle);
+            Debug.LogError("ResultSceneManager: ãƒ†ã‚­ã‚¹ãƒˆUIãŒè¨­å®šã•ã‚Œã¦ã„ã¾ã›ã‚“ï¼");
+            return;
         }
+
+        if (backgroundImage == null)
+        {
+            Debug.LogError("ResultSceneManager: èƒŒæ™¯ImageãŒè¨­å®šã•ã‚Œã¦ã„ã¾ã›ã‚“ï¼");
+            return;
+        }
+
+        if (backToTitleButton == null)
+        {
+            Debug.LogError("ResultSceneManager: ã‚¿ã‚¤ãƒˆãƒ«ã«æˆ»ã‚‹ãƒœã‚¿ãƒ³ãŒè¨­å®šã•ã‚Œã¦ã„ã¾ã›ã‚“ï¼");
+            return;
+        }
+
+        // ResultData ã‹ã‚‰å€¤ã‚’å–å¾—ã—ã¦è¡¨ç¤º
+        humanLeftText.text = "æ®‹ã‚Šä½äºº: " + ResultData.humanLeft;
+        playerConvertedText.text = "é’ã‚¾ãƒ³ãƒ“ã®æ•°: " + ResultData.playerConverted;
+        cpuConvertedText.text = "é»„ã‚¾ãƒ³ãƒ“ã®æ•°: " + ResultData.cpuConverted;
+
+        // å‹æ•—ã«ã‚ˆã£ã¦èƒŒæ™¯ã‚’å·®ã—æ›¿ãˆ
+        backgroundImage.sprite = ResultData.isWin ? winSprite : loseSprite;
+
+        // ãƒœã‚¿ãƒ³ã«ã‚¯ãƒªãƒƒã‚¯ã‚¤ãƒ™ãƒ³ãƒˆã‚’è¿½åŠ 
+        backToTitleButton.onClick.RemoveAllListeners(); // å¿µã®ãŸã‚æ—¢å­˜ãƒªã‚¹ãƒŠãƒ¼ã‚’å‰Šé™¤
+        backToTitleButton.onClick.AddListener(ReturnToTitle);
     }
 
-    // ƒ^ƒCƒgƒ‹ƒV[ƒ“‚É–ß‚é
+    // ã‚¿ã‚¤ãƒˆãƒ«ã‚·ãƒ¼ãƒ³ã«æˆ»ã‚‹
     void ReturnToTitle()
     {
-        SceneManager.LoadScene("TitleScene"); // ƒ^ƒCƒgƒ‹ƒV[ƒ“–¼‚ğŠm”F
+        SceneManager.LoadScene("OP01"); // ã“ã“ã«ã‚¿ã‚¤ãƒˆãƒ«ã‚·ãƒ¼ãƒ³åã‚’å…¥åŠ›
     }
 }

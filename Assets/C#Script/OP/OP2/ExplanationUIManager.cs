@@ -4,12 +4,7 @@ using UnityEngine.UI;
 
 public class ExplanationUIManager : MonoBehaviour
 {
-    public Text cpuCountText;  // CPUゾンビ数表示用テキスト
 
-    void Start()
-    {
-        cpuCountText.text = $"CPUゾンビ数: {GameSettings.cpuZombieCount}体";
-    }
 
     // ゲーム開始ボタン用
     public void OnClickStartGame()

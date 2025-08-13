@@ -1,4 +1,5 @@
 using UnityEngine;
+using System.Collections;
 
 public class InfectionManager : MonoBehaviour
 {
@@ -10,47 +11,60 @@ public class InfectionManager : MonoBehaviour
     [Header("感染後の黄色ゾンビのPrefab（CPU感染用）")]
     public GameObject yellowZombiePrefab;
 
+    [Header("感染時パーティクルPrefab")]
+    public ParticleSystem infectionParticlePrefab;
+
+    [Header("ゾンビ出現までの遅延")]
+    public float zombieSpawnDelay = 0.5f;
+
     private void Awake()
     {
         if (Instance == null)
-        {
             Instance = this;
-        }
         else
-        {
             Destroy(gameObject);
-        }
     }
 
     /// <summary>
-    /// 人間を感染させゾンビ化させる
+    /// 人間を感染させる
     /// </summary>
-    /// <param name="human">感染対象の人間オブジェクト</param>
-    /// <param name="infectedByCPU">CPUによる感染かどうか</param>
     public void Infect(GameObject human, bool infectedByCPU)
     {
         if (human == null) return;
 
+        StartCoroutine(InfectCoroutine(human, infectedByCPU));
+    }
+
+    private IEnumerator InfectCoroutine(GameObject human, bool infectedByCPU)
+    {
+        if (human == null) yield break;
+
+        // human の位置と回転を記録
         Vector3 position = human.transform.position;
         Quaternion rotation = human.transform.rotation;
 
-        GameObject zombiePrefab = infectedByCPU ? yellowZombiePrefab : blueZombiePrefab;
-
-        // 人間オブジェクトを削除
+        // 人間を即削除
         Destroy(human);
 
-        // 新しいゾンビを生成
-        GameObject newZombie = Instantiate(zombiePrefab, position, rotation);
+        // パーティクル生成＆再生
+        if (infectionParticlePrefab != null)
+        {
+            ParticleSystem particle = Instantiate(infectionParticlePrefab, position, Quaternion.identity);
+            particle.Play();
+        }
 
-        // タグは"zombie"に統一
+        // 指定時間待機
+        yield return new WaitForSeconds(zombieSpawnDelay);
+
+        // ゾンビ生成
+        GameObject zombiePrefab = infectedByCPU ? yellowZombiePrefab : blueZombiePrefab;
+        GameObject newZombie = Instantiate(zombiePrefab, position, rotation);
         newZombie.tag = "zombie";
 
-        // CPUかプレイヤーかの判定を設定
+        // CPUかプレイヤーか判定
         MobZombieController mobController = newZombie.GetComponent<MobZombieController>();
         if (mobController != null)
-        {
             mobController.isCPU = infectedByCPU;
-        }
 
         // ゲームマネージャに通知
         GameManager gm = FindObjectOfType<GameManager>();

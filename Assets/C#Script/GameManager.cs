@@ -68,12 +68,13 @@ public class GameManager : MonoBehaviour
         playerZombieCountText.text = ": " + playerCount;
         cpuZombieCountText.text = ": " + cpuCount;
 
-        // 人間が0になったら終了
-        if (humanCount <= 0)
+        // 開始から5秒経過してから終了判定
+        if (Time.timeSinceLevelLoad > 5f && humanCount <= 0)
         {
             EndGame();
         }
     }
+
 
     void UpdateTimer()
     {
