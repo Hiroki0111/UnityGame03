@@ -5,32 +5,31 @@ using System.Collections;
 
 public class GameManager : MonoBehaviour
 {
+    [Header("UI参照")]
     public Text humanCountText;
     public Text playerZombieCountText;
     public Text cpuZombieCountText;
+    public Text timerText; // 残り時間表示用
 
-    public float gameTimeLimit = 180f; // 3分
-    private float elapsedTime = 0f;
+    [Header("ゲーム時間設定")]
+    public float gameTime = 180f; // 3分 = 180秒
 
-    private int playerConvertedCount = 0;
-    private int cpuConvertedCount = 0;
+    private float remainingTime;
+
+    private int playerConverted = 0;
+    private int cpuConverted = 0;
 
     private float updateInterval = 0.5f;
 
     void Start()
     {
+        remainingTime = gameTime;
         StartCoroutine(UpdateCountsRoutine());
     }
 
     void Update()
     {
-        elapsedTime += Time.deltaTime;
-
-        // 人間が0になったら or 制限時間終了
-        if (GetHumanCount() <= 0 || elapsedTime >= gameTimeLimit)
-        {
-            EndGame();
-        }
+        UpdateTimer();
     }
 
     IEnumerator UpdateCountsRoutine()
@@ -44,12 +43,15 @@ public class GameManager : MonoBehaviour
 
     void UpdateCounts()
     {
-        int humanCount = GetHumanCount();
+        // Human の数を取得
+        GameObject[] humans = GameObject.FindGameObjectsWithTag("Human");
+        int humanCount = humans.Length;
 
         // Zombie の数を取得（CPUとプレイヤーで分類）
         GameObject[] zombies = GameObject.FindGameObjectsWithTag("zombie");
+
         int cpuCount = 0;
-        int playerCount = 1; // プレイヤーは1体固定
+        int playerCount = 1; // プレイヤー本体1匹
 
         foreach (var zombie in zombies)
         {
@@ -61,39 +63,54 @@ public class GameManager : MonoBehaviour
             }
         }
 
+        // UIに反映
         humanCountText.text = ": " + humanCount;
         playerZombieCountText.text = ": " + playerCount;
         cpuZombieCountText.text = ": " + cpuCount;
+
+        // 人間が0になったら終了
+        if (humanCount <= 0)
+        {
+            EndGame();
+        }
     }
 
-    int GetHumanCount()
+    void UpdateTimer()
     {
-        GameObject[] humans = GameObject.FindGameObjectsWithTag("Human");
-        return humans.Length;
+        remainingTime -= Time.deltaTime;
+        if (remainingTime < 0)
+        {
+            remainingTime = 0;
+            EndGame();
+        }
+
+        // 分:秒 形式に変換
+        int minutes = Mathf.FloorToInt(remainingTime / 60f);
+        int seconds = Mathf.FloorToInt(remainingTime % 60f);
+        timerText.text = string.Format("{0:00}:{1:00}", minutes, seconds);
     }
 
     public void AddPlayerConverted()
     {
-        playerConvertedCount++;
+        playerConverted++;
     }
 
     public void AddCpuConverted()
     {
-        cpuConvertedCount++;
+        cpuConverted++;
     }
 
     void EndGame()
     {
-        // 値を次のシーンに渡す
-        ResultData.humanLeft = GetHumanCount();
-        ResultData.playerConverted = playerConvertedCount;
-        ResultData.cpuConverted = cpuConvertedCount;
+        // 結果を保持して次のシーンへ
+        ResultData.humanLeft = GameObject.FindGameObjectsWithTag("Human").Length;
+        ResultData.playerConverted = playerConverted;
+        ResultData.cpuConverted = cpuConverted;
 
-        if (playerConvertedCount > cpuConvertedCount)
-            ResultData.isWin = true;
-        else
-            ResultData.isWin = false;
+        // 勝敗判定（例：プレイヤーがCPUより多く感染させたら勝ち）
+        ResultData.isWin = playerConverted > cpuConverted;
 
-        SceneManager.LoadScene("ResultScene");
+        SceneManager.LoadScene("ResultScene"); // リザルトシーンに遷移
     }
+
 }
