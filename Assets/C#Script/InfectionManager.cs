@@ -51,5 +51,15 @@ public class InfectionManager : MonoBehaviour
         {
             mobController.isCPU = infectedByCPU;
         }
+
+        // ゲームマネージャに通知
+        GameManager gm = FindObjectOfType<GameManager>();
+        if (gm != null)
+        {
+            if (infectedByCPU)
+                gm.AddCpuConverted();
+            else
+                gm.AddPlayerConverted();
+        }
     }
 }
