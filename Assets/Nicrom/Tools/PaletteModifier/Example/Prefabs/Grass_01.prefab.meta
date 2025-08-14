@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 1f3b05bdaaced784a86182f953c520f4
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 100100000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 278237
+  packageName: Palette Modifier LITE - Texture Color Editor for Low Poly Models
+  packageVersion: 1.0.1
+  assetPath: Assets/Nicrom/Tools/PaletteModifier/Example/Prefabs/Grass_01.prefab
+  uploadId: 656099

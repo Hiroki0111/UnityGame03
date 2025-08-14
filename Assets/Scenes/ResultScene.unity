@@ -468,7 +468,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   humanLeftText: {fileID: 1660121554}
   playerConvertedText: {fileID: 894044371}
-  cpuConvertedText: {fileID: 894044371}
+  cpuConvertedText: {fileID: 1980691818}
   backgroundImage: {fileID: 1530865230}
   winSprite: {fileID: 21300000, guid: 359e431694d7b024a8b82074a2381e86, type: 3}
   loseSprite: {fileID: 21300000, guid: 5d4c63884c0077347b678492117276a2, type: 3}

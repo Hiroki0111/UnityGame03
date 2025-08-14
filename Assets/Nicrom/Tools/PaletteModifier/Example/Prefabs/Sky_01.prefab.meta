@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: bb05953b4402f2c4291c21b011d5296d
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 100100000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 278237
+  packageName: Palette Modifier LITE - Texture Color Editor for Low Poly Models
+  packageVersion: 1.0.1
+  assetPath: Assets/Nicrom/Tools/PaletteModifier/Example/Prefabs/Sky_01.prefab
+  uploadId: 656099

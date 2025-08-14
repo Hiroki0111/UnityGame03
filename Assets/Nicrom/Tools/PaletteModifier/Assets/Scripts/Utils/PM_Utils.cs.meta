@@ -1,0 +1,18 @@
+fileFormatVersion: 2
+guid: 1bb5d8cbfb8942a4d86ca1fdcef6d4ca
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 278237
+  packageName: Palette Modifier LITE - Texture Color Editor for Low Poly Models
+  packageVersion: 1.0.1
+  assetPath: Assets/Nicrom/Tools/PaletteModifier/Assets/Scripts/Utils/PM_Utils.cs
+  uploadId: 656099

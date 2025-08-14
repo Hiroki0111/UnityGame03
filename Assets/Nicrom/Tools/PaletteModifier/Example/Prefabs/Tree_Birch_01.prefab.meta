@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: bd7e1755ab9ba194497800a18bccd1ab
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 100100000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 278237
+  packageName: Palette Modifier LITE - Texture Color Editor for Low Poly Models
+  packageVersion: 1.0.1
+  assetPath: Assets/Nicrom/Tools/PaletteModifier/Example/Prefabs/Tree_Birch_01.prefab
+  uploadId: 656099
