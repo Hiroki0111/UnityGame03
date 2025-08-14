@@ -62,16 +62,14 @@ public class NpcController : MonoBehaviour
         // 攻撃アニメーション
         animator.SetTrigger("Attack");
 
-        // プレイヤーは青ゾンビ（infectedByCPU = false）
+        // プレイヤーは青ゾンビ
         bool infectedByCPU = false;
 
         // InfectionManager で安全に変換
         InfectionManager.Instance?.Infect(other.gameObject, infectedByCPU);
 
-        // チュートリアルUI更新（青ゾンビカウントを増やす）
+        // チュートリアルUI更新
         if (TutorialManager.Instance != null)
-        {
             TutorialManager.Instance.OnHumanInfected(!infectedByCPU);
-        }
     }
 }

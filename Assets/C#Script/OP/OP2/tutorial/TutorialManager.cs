@@ -31,8 +31,8 @@ public class TutorialManager : MonoBehaviour
     public Text yellowZombieCountText;
 
     private int humanCount = 0;
-    private int blueZombieCount = 0;
-    private int yellowZombieCount = 0;
+    private int blueZombieCount = 1;  // プレイヤー1人
+    private int yellowZombieCount = 1;
 
     private void Awake()
     {
@@ -50,15 +50,37 @@ public class TutorialManager : MonoBehaviour
 
     private void Start()
     {
-        UpdateCounts();
+        InitializeCounts();
     }
 
+    /// <summary>
+    /// 初期人数カウント（青/黄ゾンビ、Human）を正確に設定
+    /// </summary>
+    private void InitializeCounts()
+    {
+        // 人間の数
+        humanCount = GameObject.FindGameObjectsWithTag("Human").Length;
+
+        // 黄色ゾンビをシーン内でカウント
+        yellowZombieCount = 0;
+        GameObject[] zombies = GameObject.FindGameObjectsWithTag("zombie");
+        foreach (var z in zombies)
+        {
+            MobZombieController mob = z.GetComponent<MobZombieController>();
+            if (mob != null && mob.isCPU)
+                yellowZombieCount++;
+        }
+
+        UpdateCountUI();
+    }
+
+    /// <summary>
+    /// 人間感染時に呼ばれる
+    /// </summary>
     public void OnHumanInfected(bool becameBlue)
     {
-        // 人間減少
         humanCount = Mathf.Max(humanCount - 1, 0);
 
-        // ゾンビ増加
         if (becameBlue)
             blueZombieCount++;
         else
@@ -66,34 +88,13 @@ public class TutorialManager : MonoBehaviour
 
         UpdateCountUI();
 
-        // コメントを非表示
+        // チュートリアルコメント非表示
         foreach (var comment in tutorialComments)
             comment.SetActive(false);
 
+        // スタートボタン表示
         if (startButton != null)
             startButton.gameObject.SetActive(true);
-    }
-
-    private void UpdateCounts()
-    {
-        humanCount = GameObject.FindGameObjectsWithTag("Human").Length;
-
-        // 初期値の黄色ゾンビはシーンに最初からいる前提
-        blueZombieCount = 1;  // プレイヤー青ゾンビ
-        yellowZombieCount = 0;
-
-        GameObject[] zombies = GameObject.FindGameObjectsWithTag("zombie");
-        foreach (var z in zombies)
-        {
-            MobZombieController mob = z.GetComponent<MobZombieController>();
-            if (mob != null)
-            {
-                if (mob.isCPU) yellowZombieCount++;
-                else blueZombieCount++;
-            }
-        }
-
-        UpdateCountUI();
     }
 
     private void UpdateCountUI()
