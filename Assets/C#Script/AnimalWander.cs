@@ -4,58 +4,83 @@ using UnityEngine.AI;
 public class AnimalWander : MonoBehaviour
 {
     [Header("移動パラメータ")]
-    public float wanderRadius = 10f; // 移動できる半径（村の広さに応じて調整）
-    public float wanderDelay = 3f;   // 次の目的地に向かうまでの待ち時間
+    public float wanderRadius = 10f; // 移動できる半径
+    public float wanderDelay = 3f;   // 次の目的地までの待ち時間
+    public float wallCheckDistance = 2f; // 壁を事前検知する距離
 
-    private NavMeshAgent agent;      // 自動経路探索と移動を行うコンポーネント
-    private float timer;             // 待ち時間を計測するためのタイマー
+    private NavMeshAgent agent;
+    private float timer;
 
     void Start()
     {
-        // NavMeshAgentコンポーネントを取得（必須）
         agent = GetComponent<NavMeshAgent>();
 
-        // 最初の移動までの時間を初期化
+        // NavMeshAgent の移動挙動を強化
+        agent.stoppingDistance = 1.0f; // 壁ギリギリまで行かない
+        agent.radius = 0.8f; // 馬の体格に合わせて調整
+        agent.obstacleAvoidanceType = ObstacleAvoidanceType.HighQualityObstacleAvoidance;
+
         timer = wanderDelay;
     }
 
     void Update()
     {
-        // 経過時間をカウント
         timer += Time.deltaTime;
 
-        // 指定時間が経過したら新しい目的地を設定
         if (timer >= wanderDelay)
         {
-            // ランダムな位置を取得（NavMesh上にある位置）
-            Vector3 newPos = RandomNavSphere(transform.position, wanderRadius, -1);
-
-            // NavMeshAgentに新しい目的地を設定
+            Vector3 newPos = GetValidRandomPosition();
             agent.SetDestination(newPos);
 
-            // タイマーをリセット
             timer = 0;
         }
     }
 
     /// <summary>
-    /// 指定範囲内でランダムなNavMesh上の座標を取得する関数
+    /// NavMesh 上のランダム地点を取得し、壁があれば再取得
     /// </summary>
-    /// <param name="origin">基準位置（現在地）</param>
-    /// <param name="dist">半径</param>
-    /// <param name="layermask">レイヤーマスク（-1で全て）</param>
-    /// <returns>NavMesh上のランダムな位置</returns>
+    private Vector3 GetValidRandomPosition()
+    {
+        int safetyCounter = 0;
+        Vector3 newPos;
+
+        do
+        {
+            newPos = RandomNavSphere(transform.position, wanderRadius, -1);
+            safetyCounter++;
+            // 進行方向に壁があるかをレイキャストでチェック
+        } while (IsWallInPath(newPos) && safetyCounter < 10);
+
+        return newPos;
+    }
+
+    /// <summary>
+    /// 目的地までの直線に壁があるか判定
+    /// </summary>
+    private bool IsWallInPath(Vector3 targetPos)
+    {
+        Vector3 direction = (targetPos - transform.position).normalized;
+
+        // 高さを少し上げてレイキャスト（地面に当たらないように）
+        if (Physics.Raycast(transform.position + Vector3.up, direction, out RaycastHit hit, wallCheckDistance))
+        {
+            if (hit.collider.CompareTag("Wall") || hit.collider.CompareTag("Obstacle"))
+            {
+                return true; // 壁や障害物あり
+            }
+        }
+        return false;
+    }
+
+    /// <summary>
+    /// NavMesh 上のランダム座標を取得
+    /// </summary>
     public static Vector3 RandomNavSphere(Vector3 origin, float dist, int layermask)
     {
-        // ランダムな方向ベクトルを作成（球状にランダム）
         Vector3 randomDirection = Random.insideUnitSphere * dist;
-
-        // 現在位置からランダム方向へ移動
         randomDirection += origin;
 
         NavMeshHit navHit;
-
-        // NavMesh上にサンプリングして一番近い有効な座標を取得
         NavMesh.SamplePosition(randomDirection, out navHit, dist, layermask);
 
         return navHit.position;

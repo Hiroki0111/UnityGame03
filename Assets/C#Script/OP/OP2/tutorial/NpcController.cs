@@ -1,6 +1,4 @@
 using UnityEngine;
-using UnityEngine.UI;
-using UnityEngine.SceneManagement;
 
 public class NpcController : MonoBehaviour
 {
@@ -8,51 +6,33 @@ public class NpcController : MonoBehaviour
     public float dashSpeed = 5f;
     public FixedJoystick joystick;
     public Animator animator;
-    public Button dashButton;
     public Rigidbody rb;
-    public SwipeCameraController cameraController;
-
-    [Header("Tutorial UI")]
-    public GameObject[] tutorialComments; // ƒ`ƒ…[ƒgƒŠƒAƒ‹‚ÌƒRƒƒ“ƒgUIi‡”Ô‚É•\Ž¦j
-    public GameObject startButton;        // ƒQ[ƒ€ŠJŽnƒ{ƒ^ƒ“
 
     private bool isDashing = false;
     private float dashDuration = 5f;
     private float dashTimer = 0f;
 
-    private bool tutorialCompleted = false; // ƒ`ƒ…[ƒgƒŠƒAƒ‹I—¹ƒtƒ‰ƒO
-
+    [Header("Camera")]
+    public SwipeCameraController cameraController; // ã‚«ãƒ¡ãƒ©åˆ¶å¾¡
     void Start()
     {
-        if (dashButton != null)
-            dashButton.onClick.AddListener(OnDashButtonPressed);
-
+        // ã‚«ãƒ¡ãƒ©ã‚’åˆæœŸä½ç½®ã«ãƒªã‚»ãƒƒãƒˆ
         if (cameraController != null)
             cameraController.ResetCameraBehindTarget();
-
-        // ƒ`ƒ…[ƒgƒŠƒAƒ‹UI‰Šú‰»
-        if (tutorialComments != null)
-        {
-            foreach (var c in tutorialComments) c.SetActive(true);
-        }
-
-        if (startButton != null)
-        {
-            startButton.SetActive(false);
-            startButton.GetComponent<Button>().onClick.AddListener(OnStartButtonPressed);
-        }
     }
-
+    // ã‚«ãƒ¡ãƒ©ãƒªã‚»ãƒƒãƒˆãƒœã‚¿ãƒ³æŠ¼ä¸‹æ™‚
+    public void OnCameraResetButtonPressed()
+    {
+        if (cameraController != null)
+            cameraController.ResetCameraBehindTarget();
+    }
     void FixedUpdate()
     {
-        if (tutorialCompleted) return; // ƒ`ƒ…[ƒgƒŠƒAƒ‹’†‚¾‚¯‘€ì‰Â”\‚É‚·‚é‚È‚ç‚±‚±‚ð’²®
-
+        // æ“ä½œå¯èƒ½
         Vector3 camForward = Camera.main.transform.forward;
         Vector3 camRight = Camera.main.transform.right;
-
         camForward.y = 0f;
         camRight.y = 0f;
-
         camForward.Normalize();
         camRight.Normalize();
 
@@ -61,10 +41,8 @@ public class NpcController : MonoBehaviour
         if (inputDirection.magnitude > 0.1f)
         {
             inputDirection.Normalize();
-
             float speed = isDashing ? dashSpeed : moveSpeed;
             Vector3 move = inputDirection * speed;
-
             rb.MovePosition(rb.position + move * Time.fixedDeltaTime);
             transform.rotation = Quaternion.LookRotation(inputDirection);
 
@@ -90,7 +68,7 @@ public class NpcController : MonoBehaviour
         }
     }
 
-    public void OnDashButtonPressed()
+    public void StartDash()
     {
         if (!isDashing)
         {
@@ -99,69 +77,23 @@ public class NpcController : MonoBehaviour
         }
     }
 
-    public void OnCameraResetButtonPressed()
-    {
-        if (cameraController != null)
-            cameraController.ResetCameraBehindTarget();
-    }
-
     void OnTriggerEnter(Collider other)
     {
-        if (other.CompareTag("Human") && !tutorialCompleted)
+        if (other.CompareTag("Human"))
         {
             animator.SetTrigger("Attack");
-            InfectHuman(other.gameObject);
-        }
-    }
 
-    private void InfectHuman(GameObject human)
-    {
-        Debug.Log("InfectHuman called on " + human.name);
-        if (InfectionManager.Instance != null)
-        {
-            InfectionManager.Instance.Infect(human, false);
+            // æ„ŸæŸ“å‡¦ç†
+            bool becameBlue = Random.value > 0.5f;
+            InfectionManager.Instance?.Infect(other.gameObject, becameBlue);
 
-            // ƒ`ƒ…[ƒgƒŠƒAƒ‹‚Ìê‡ ¨ ƒRƒƒ“ƒg‚ðÁ‚µ‚ÄStartƒ{ƒ^ƒ“‚ðo‚·
-            CompleteTutorial();
-        }
-        else
-        {
-            Debug.LogWarning("InfectionManager instance is null!");
-        }
-    }
-
-    void OnTriggerStay(Collider other)
-    {
-        if (other.CompareTag("Human") && !tutorialCompleted)
-        {
-            AnimatorStateInfo state = animator.GetCurrentAnimatorStateInfo(0);
-            if (state.IsName("Attack"))
+            // ãƒãƒ¥ãƒ¼ãƒˆãƒªã‚¢ãƒ«Managerã«é€šçŸ¥
+            if (TutorialManager.Instance != null)
             {
-                InfectHuman(other.gameObject);
+                TutorialManager.Instance.OnHumanInfected(becameBlue);
             }
         }
     }
 
-    private void CompleteTutorial()
-    {
-        tutorialCompleted = true;
 
-        // ƒRƒƒ“ƒg‘SÁ‚µ
-        if (tutorialComments != null)
-        {
-            foreach (var c in tutorialComments) c.SetActive(false);
-        }
-
-        // Startƒ{ƒ^ƒ“•\Ž¦
-        if (startButton != null)
-        {
-            startButton.SetActive(true);
-        }
-    }
-
-    private void OnStartButtonPressed()
-    {
-        // ƒQ[ƒ€–{•ÒƒV[ƒ“‚ÖˆÚ“®iƒV[ƒ“–¼‚Í·‚µ‘Ö‚¦j
-        SceneManager.LoadScene("GamePlayScene");
-    }
 }

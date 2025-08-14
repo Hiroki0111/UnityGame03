@@ -6,6 +6,9 @@ TagManager:
   tags:
   - Human
   - zombie
+  - FxTemporaire
+  - Wall
+  - Obstacle
   layers:
   - Default
   - TransparentFX
