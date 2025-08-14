@@ -14,7 +14,7 @@ public class TutorialManager : MonoBehaviour
     public Button startButton;
 
     [Header("暗転用イメージ")]
-    public Image fadeImage; // UI Canvas上の黒いImage
+    public Image fadeImage;
 
     [Header("BGM")]
     public AudioSource bgmAudioSource;
@@ -41,28 +41,18 @@ public class TutorialManager : MonoBehaviour
         if (startButton != null)
         {
             startButton.onClick.AddListener(OnStartButtonPressed);
-            startButton.gameObject.SetActive(false); // ★初期非表示に変更
+            startButton.gameObject.SetActive(false);
         }
 
         if (fadeImage != null)
             fadeImage.color = new Color(0, 0, 0, 0);
-
-        UpdateCountUI();
     }
 
-
-    /// <summary>
-    /// 人間の初期人数を設定
-    /// </summary>
-    public void SetInitialHumanCount(int count)
+    private void Start()
     {
-        humanCount = count;
-        UpdateCountUI();
+        UpdateCounts();
     }
 
-    /// <summary>
-    /// 人間感染時に呼ばれる
-    /// </summary>
     public void OnHumanInfected(bool becameBlue)
     {
         // 人間減少
@@ -76,28 +66,46 @@ public class TutorialManager : MonoBehaviour
 
         UpdateCountUI();
 
-        // コメントを全て非表示
+        // コメントを非表示
         foreach (var comment in tutorialComments)
             comment.SetActive(false);
 
-        // スタートボタン表示
         if (startButton != null)
             startButton.gameObject.SetActive(true);
+    }
+
+    private void UpdateCounts()
+    {
+        humanCount = GameObject.FindGameObjectsWithTag("Human").Length;
+
+        // 初期値の黄色ゾンビはシーンに最初からいる前提
+        blueZombieCount = 1;  // プレイヤー青ゾンビ
+        yellowZombieCount = 0;
+
+        GameObject[] zombies = GameObject.FindGameObjectsWithTag("zombie");
+        foreach (var z in zombies)
+        {
+            MobZombieController mob = z.GetComponent<MobZombieController>();
+            if (mob != null)
+            {
+                if (mob.isCPU) yellowZombieCount++;
+                else blueZombieCount++;
+            }
+        }
+
+        UpdateCountUI();
     }
 
     private void UpdateCountUI()
     {
         if (humanCountText != null)
-            humanCountText.text = "Human: " + humanCount;
+            humanCountText.text = ": " + humanCount;
         if (blueZombieCountText != null)
-            blueZombieCountText.text = "Blue Zombie: " + blueZombieCount;
+            blueZombieCountText.text = ": " + blueZombieCount;
         if (yellowZombieCountText != null)
-            yellowZombieCountText.text = "Yellow Zombie: " + yellowZombieCount;
+            yellowZombieCountText.text = ": " + yellowZombieCount;
     }
 
-    /// <summary>
-    /// スタートボタン押下時処理
-    /// </summary>
     private void OnStartButtonPressed()
     {
         startButton.gameObject.SetActive(false);
@@ -114,11 +122,9 @@ public class TutorialManager : MonoBehaviour
             timer += Time.deltaTime;
             float t = timer / fadeDuration;
 
-            // BGMフェードアウト
             if (bgmAudioSource != null)
                 bgmAudioSource.volume = Mathf.Lerp(initialVolume, 0f, t);
 
-            // 画面暗転
             if (fadeImage != null)
                 fadeImage.color = new Color(0, 0, 0, t);
 
