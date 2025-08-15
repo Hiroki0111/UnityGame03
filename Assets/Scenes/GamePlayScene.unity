@@ -18611,7 +18611,7 @@ Light:
   m_Enabled: 1
   serializedVersion: 11
   m_Type: 1
-  m_Color: {r: 0.066037714, g: 0.066037714, b: 0.066037714, a: 1}
+  m_Color: {r: 0.55695975, g: 0.5879794, b: 0.7924528, a: 1}
   m_Intensity: 1
   m_Range: 10
   m_SpotAngle: 30
@@ -33907,6 +33907,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   target: {fileID: 6543814778779475648}
+  joystick: {fileID: 0}
   distanceBehind: 2.76
   heightOffset: 1.5
   heightFollowFactor: 1
