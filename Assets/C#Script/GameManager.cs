@@ -14,14 +14,6 @@ public class GameManager : MonoBehaviour
     [Header("ゲーム時間設定")]
     public float gameTime = 180f; // 3分
 
-    [Header("BGM / SE設定")]
-    public AudioSource mainBGM;   // ゲーム中ループBGM
-    public AudioSource endSFX;    // 勝敗ジングル効果音
-    public AudioSource endBGM;    // エンディングBGM
-
-    [Header("フェード設定")]
-    public Image fadeImage;       // UI Imageを黒にして画面フェード用
-    public float fadeDuration = 2f;
 
     private float remainingTime;
     private int playerConverted = 0;
@@ -29,6 +21,13 @@ public class GameManager : MonoBehaviour
     private float updateInterval = 0.5f;
     private bool isGameEnding = false;
 
+    public static bool gameEnded = false; // 感染停止フラグ
+
+    [SerializeField] private AudioSource mainBGM;
+    [SerializeField] private AudioSource endSFX;
+    [SerializeField] private AudioSource endBGM;
+    [SerializeField] private UnityEngine.UI.Image fadeImage;
+    [SerializeField] private float fadeDuration = 1f;
     void Start()
     {
         remainingTime = gameTime;
@@ -64,7 +63,7 @@ public class GameManager : MonoBehaviour
 
     void UpdateCounts()
     {
-        if (isGameEnding) return; // 終了処理中なら更新しない
+
 
         GameObject[] humans = GameObject.FindGameObjectsWithTag("Human");
         int humanCount = humans.Length;
@@ -121,35 +120,29 @@ public class GameManager : MonoBehaviour
         cpuConverted++;
     }
 
-    IEnumerator EndGameSequence()
+    public IEnumerator EndGameSequence()
     {
-        if (isGameEnding) yield break; // 二重実行防止
+        // すでに終了処理が始まっていたら何もしない
+        if (isGameEnding) yield break;
         isGameEnding = true;
 
-        // 結果保存
-        ResultData.humanLeft = GameObject.FindGameObjectsWithTag("Human").Length;
-        ResultData.playerConverted = playerConverted;
-        ResultData.cpuConverted = cpuConverted;
-        ResultData.isWin = playerConverted > cpuConverted;
+        gameEnded = true; // 感染停止フラグ
 
-        // メインBGM停止
+        // --- 音・演出 ---
         if (mainBGM != null) mainBGM.Stop();
 
-        // ① 効果音再生（勝ち・負けで切り替え）
         if (endSFX != null)
         {
             endSFX.Play();
-            yield return new WaitForSeconds(endSFX.clip.length); // 再生完了まで待つ
+            yield return new WaitForSeconds(endSFX.clip.length);
         }
 
-        // ② エンディングBGM再生
         if (endBGM != null)
         {
             endBGM.Play();
-            yield return new WaitForSeconds(1f); // 1秒ぐらい流してからフェード開始（好みで調整）
+            yield return new WaitForSeconds(1f);
         }
 
-        // ③ フェードアウト
         if (fadeImage != null)
         {
             float t = 0f;
@@ -163,7 +156,39 @@ public class GameManager : MonoBehaviour
             }
         }
 
-        // ④ シーン遷移
+        // ====== 集計・保存 ======
+        int humansLeft = GameObject.FindGameObjectsWithTag("Human").Length;
+        var allZombies = GameObject.FindGameObjectsWithTag("zombie");
+        int blueCount = 0;
+        int yellowCount = 0;
+
+        foreach (var z in allZombies)
+        {
+            var pzc = z.GetComponent<PlayerZombieController>();
+            if (pzc != null)
+            {
+                if (pzc.team == PlayerZombieController.TeamType.Blue) blueCount++;
+                else yellowCount++;
+                continue;
+            }
+
+            var mzc = z.GetComponent<MobZombieController>();
+            if (mzc != null)
+            {
+                if (mzc.team == MobZombieController.TeamType.Blue) blueCount++;
+                else yellowCount++;
+            }
+        }
+
+        ResultData.humanLeft = humansLeft;
+        ResultData.playerConverted = blueCount;
+        ResultData.cpuConverted = yellowCount;
+        ResultData.isWin = blueCount > yellowCount;
+        // ==========================
+
         SceneManager.LoadScene("ResultScene");
     }
+
+
+
 }

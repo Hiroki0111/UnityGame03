@@ -5,6 +5,9 @@ public class SwipeCameraController : MonoBehaviour
     [Tooltip("追従対象のキャラ")]
     public Transform target;
 
+    [Tooltip("ジョイスティック（FixedJoystick）")]
+    public FixedJoystick joystick; // ← インスペクターでアサイン
+
     [Tooltip("キャラの背中側からどれだけ離れるかの距離")]
     public float distanceBehind = 6f;
 
@@ -40,95 +43,10 @@ public class SwipeCameraController : MonoBehaviour
         // 水平方向の回転をQuaternionに変換（y軸回転のみ）
         Quaternion rotation = Quaternion.Euler(0f, angleY, 0f);
 
-        // rotationを基に後ろ向きのベクトル(Vector3.back)を回転させることで、
-        // キャラの背面方向のオフセット位置を計算
+        // キャラ背後のオフセット計算
         Vector3 offset = rotation * Vector3.back * distanceBehind;
 
-        // キャラの高さとカメラの高さ追従度合いを計算
-        float targetHeight = Mathf.Lerp(
-            target.position.y + heightOffset, // キャラの高さ + オフセット
-            heightOffset,                     // 基準高さ（シーンの地面など）
-            1f - heightFollowFactor           // 追従度合いの逆数
-        );
-
-        // 目標カメラ位置はキャラの位置 + 後ろオフセット（x,z）＋高さ(y)
-        Vector3 desiredPosition = target.position + offset;
-        desiredPosition.y = targetHeight;
-
-        // カメラの位置を滑らかに追従させる
-        transform.position = Vector3.SmoothDamp(transform.position, desiredPosition, ref currentVelocity, 1f / positionFollowSpeed);
-
-        // カメラはキャラの正面（キャラの位置＋高さ）を見るように回転を滑らかに追従
-        Quaternion targetRotation = Quaternion.LookRotation(target.position + Vector3.up * heightOffset - transform.position);
-        transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, rotationFollowSpeed * Time.deltaTime);
-    }
-
-    void HandleSwipeInput()
-    {
-        if (Input.touchSupported)
-        {
-            if (Input.touchCount == 1)
-            {
-                Touch touch = Input.GetTouch(0);
-
-                if (touch.phase == TouchPhase.Began)
-                {
-                    lastTouchPosition = touch.position;
-                    isDragging = true;
-                }
-                else if (touch.phase == TouchPhase.Moved && isDragging)
-                {
-                    Vector2 delta = touch.deltaPosition;
-                    angleY += delta.x * swipeSensitivity;
-                }
-                else if (touch.phase == TouchPhase.Ended || touch.phase == TouchPhase.Canceled)
-                {
-                    isDragging = false;
-                }
-            }
-        }
-        else
-        {
-            // エディタやPC向けマウス操作
-            if (Input.GetMouseButtonDown(0))
-            {
-                lastTouchPosition = Input.mousePosition;
-                isDragging = true;
-            }
-            else if (Input.GetMouseButton(0) && isDragging)
-            {
-                Vector2 delta = (Vector2)Input.mousePosition - lastTouchPosition;
-                lastTouchPosition = Input.mousePosition;
-                angleY += delta.x * swipeSensitivity;
-            }
-            else if (Input.GetMouseButtonUp(0))
-            {
-                isDragging = false;
-            }
-        }
-    }
-
-    // 外部から呼んで、カメラをキャラ背面に自動リセットする関数
-    public void ResetCameraBehindTarget()
-    {
-        if (target == null) return;
-
-        // キャラのY軸回転を取得（0～360度）
-        float targetYAngle = target.eulerAngles.y;
-
-        // キャラの向いているY軸の角度をそのまま使用
-        // （Vector3.back に回転をかける仕様なので 180度は不要）
-        angleY = target.eulerAngles.y;
-
-        // ここからカメラの位置と回転を即座にリセットする処理を追加
-
-        // 回転Quaternionを計算（angleYのみ）
-        Quaternion rotation = Quaternion.Euler(0f, angleY, 0f);
-
-        // カメラ位置のオフセットを計算
-        Vector3 offset = rotation * Vector3.back * distanceBehind;
-
-        // カメラの高さを計算（targetHeight）
+        // 高さ追従計算
         float targetHeight = Mathf.Lerp(
             target.position.y + heightOffset,
             heightOffset,
@@ -139,15 +57,87 @@ public class SwipeCameraController : MonoBehaviour
         Vector3 desiredPosition = target.position + offset;
         desiredPosition.y = targetHeight;
 
-        // 位置を即座に変更
-        transform.position = desiredPosition;
+        // 位置追従
+        transform.position = Vector3.SmoothDamp(
+            transform.position,
+            desiredPosition,
+            ref currentVelocity,
+            1f / positionFollowSpeed
+        );
 
-        // 回転を即座にキャラ方向に向ける
-        Quaternion targetRotation = Quaternion.LookRotation(target.position + Vector3.up * heightOffset - transform.position);
-        transform.rotation = targetRotation;
-
-        // 速度ベクトルはリセットしておく（SmoothDamp用）
-        currentVelocity = Vector3.zero;
+        // 回転追従
+        Quaternion targetRotation = Quaternion.LookRotation(
+            target.position + Vector3.up * heightOffset - transform.position
+        );
+        transform.rotation = Quaternion.Slerp(
+            transform.rotation,
+            targetRotation,
+            rotationFollowSpeed * Time.deltaTime
+        );
     }
 
+    void HandleSwipeInput()
+    {
+        if (!Input.touchSupported) return; // スマホ専用
+
+        int joystickFingerId = -1;
+        if (joystick != null)
+            joystickFingerId = joystick.CurrentFingerId; // ← FixedJoystickに追加したプロパティ
+
+        foreach (Touch touch in Input.touches)
+        {
+            // ジョイスティック用の指はスワイプに使わない
+            if (touch.fingerId == joystickFingerId)
+                continue;
+
+            if (touch.phase == TouchPhase.Began)
+            {
+                lastTouchPosition = touch.position;
+                isDragging = true;
+            }
+            else if (touch.phase == TouchPhase.Moved && isDragging)
+            {
+                Vector2 delta = touch.deltaPosition;
+                angleY += delta.x * swipeSensitivity;
+            }
+            else if (touch.phase == TouchPhase.Ended || touch.phase == TouchPhase.Canceled)
+            {
+                isDragging = false;
+            }
+        }
+    }
+
+    public void ResetCameraBehindTarget()
+    {
+        if (target == null) return;
+
+        // キャラの角度を反映
+        angleY = target.eulerAngles.y;
+
+        // 回転Quaternion
+        Quaternion rotation = Quaternion.Euler(0f, angleY, 0f);
+
+        // カメラ位置オフセット
+        Vector3 offset = rotation * Vector3.back * distanceBehind;
+
+        // 高さ
+        float targetHeight = Mathf.Lerp(
+            target.position.y + heightOffset,
+            heightOffset,
+            1f - heightFollowFactor
+        );
+
+        // 即座に位置変更
+        Vector3 desiredPosition = target.position + offset;
+        desiredPosition.y = targetHeight;
+        transform.position = desiredPosition;
+
+        // 即座に回転変更
+        Quaternion targetRotation = Quaternion.LookRotation(
+            target.position + Vector3.up * heightOffset - transform.position
+        );
+        transform.rotation = targetRotation;
+
+        currentVelocity = Vector3.zero;
+    }
 }

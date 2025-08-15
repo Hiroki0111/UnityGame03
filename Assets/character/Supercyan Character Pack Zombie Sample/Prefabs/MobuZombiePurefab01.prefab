@@ -901,6 +901,7 @@ MonoBehaviour:
   speed: 3
   searchInterval: 1
   animator: {fileID: 5937514110548597844}
+  isCPU: 0
 --- !u!195 &5204965411867503128
 NavMeshAgent:
   m_ObjectHideFlags: 0

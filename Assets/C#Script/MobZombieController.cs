@@ -22,6 +22,9 @@ public class MobZombieController : MonoBehaviour
     // CPUかプレイヤーかを判別
     public bool isCPU = false;
 
+    public enum TeamType { Blue, Yellow }
+    public TeamType team;
+
     void Start()
     {
         agent = GetComponent<NavMeshAgent>();

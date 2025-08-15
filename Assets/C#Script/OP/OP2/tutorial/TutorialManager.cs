@@ -32,7 +32,7 @@ public class TutorialManager : MonoBehaviour
 
     private int humanCount = 0;
     private int blueZombieCount = 1;  // プレイヤー1人
-    private int yellowZombieCount = 1;
+    private int yellowZombieCount = 0;
 
     private void Awake()
     {

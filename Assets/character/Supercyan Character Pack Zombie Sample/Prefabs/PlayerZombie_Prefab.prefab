@@ -261,7 +261,7 @@ GameObject:
   - component: {fileID: 1265536837321440097}
   m_Layer: 0
   m_Name: PlayerZombie_Prefab
-  m_TagString: Player
+  m_TagString: zombie
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -370,14 +370,14 @@ MonoBehaviour:
   moveSpeed: 3
   dashSpeed: 6
   joystick: {fileID: 0}
+  rb: {fileID: 2022750626909624514}
   animator: {fileID: 4763697378789955991}
   dashButton: {fileID: 0}
-  rb: {fileID: 2022750626909624514}
-  attackRange: 1
-  humanLayer:
-    serializedVersion: 2
-    m_Bits: 0
-  attackInterval: 2
+  dashButtonCanvasGroup: {fileID: 0}
+  dashDuration: 5
+  fadeDuration: 1
+  cameraController: {fileID: 0}
+  attackCooldown: 1
 --- !u!65 &1265536837321440097
 BoxCollider:
   m_ObjectHideFlags: 0

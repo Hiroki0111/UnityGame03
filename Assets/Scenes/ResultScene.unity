@@ -481,6 +481,7 @@ MonoBehaviour:
   loseClip: {fileID: 8300000, guid: 80a5df63ceb73ca4dab1cecc5a5570f2, type: 3}
   drawClip: {fileID: 8300000, guid: 88f63a5e3a6ea14489614bec0f3483af, type: 3}
   backButtonClip: {fileID: 8300000, guid: d6fcc4321e7ed0e498f700c6f55eb5bf, type: 3}
+  tuika01Clip: {fileID: 8300000, guid: 8eb09021b6906d8479662a334433bfa0, type: 3}
   fadeImage: {fileID: 1396693323}
   fadeDuration: 1
 --- !u!4 &383063711
@@ -713,8 +714,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 630.79, y: -254.84799}
-  m_SizeDelta: {x: 397.58, y: 84.791}
+  m_AnchoredPosition: {x: 791.7573, y: -254.84799}
+  m_SizeDelta: {x: 536.946, y: 84.791}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &894044371
 MonoBehaviour:
@@ -1313,8 +1314,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 630.79, y: -643}
-  m_SizeDelta: {x: 397.58, y: 84.791}
+  m_AnchoredPosition: {x: 794.5812, y: -643}
+  m_SizeDelta: {x: 539.391, y: 84.791}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &1660121553
 CanvasRenderer:
@@ -1392,8 +1393,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 630.79, y: -446}
-  m_SizeDelta: {x: 397.58, y: 84.791}
+  m_AnchoredPosition: {x: 786.1093, y: -446}
+  m_SizeDelta: {x: 532.056, y: 84.791}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1980691818
 MonoBehaviour:

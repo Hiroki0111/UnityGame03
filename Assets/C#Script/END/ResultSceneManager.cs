@@ -29,6 +29,7 @@ public class ResultSceneManager : MonoBehaviour
     public AudioClip loseClip;
     public AudioClip drawClip;
     public AudioClip backButtonClip;
+    public AudioClip tuika01Clip;
 
     [Header("フェード用Image（黒）")]
     public Image fadeImage;
@@ -65,41 +66,43 @@ public class ResultSceneManager : MonoBehaviour
 
     IEnumerator ShowResultsCoroutine()
     {
-        // 0.5秒ごとに数字を順番に表示
-        yield return new WaitForSeconds(0.5f);
+        // 文字3回表示（1.5秒間隔でSEを鳴らす）
         playerConvertedText.text = "青ゾンビの数: " + ResultData.playerConverted;
+        PlaySFX(tuika01Clip); // ここは任意の文字出現音
+        yield return new WaitForSeconds(1.5f);
 
-        yield return new WaitForSeconds(0.5f);
         cpuConvertedText.text = "黄ゾンビの数: " + ResultData.cpuConverted;
+        PlaySFX(tuika01Clip);
+        yield return new WaitForSeconds(1.5f);
 
-        yield return new WaitForSeconds(0.5f);
         humanLeftText.text = "残り住人: " + ResultData.humanLeft;
+        PlaySFX(tuika01Clip);
+        yield return new WaitForSeconds(1.5f);
 
-        // 勝敗・引き分け判定
+        // 文字3回表示後、2秒待って背景画像表示＆SE
+        yield return new WaitForSeconds(1f);
+
         bool isDraw = ResultData.playerConverted == ResultData.cpuConverted;
         if (isDraw)
         {
             backgroundImage.sprite = drawSprite;
-            Debug.Log("Set background to drawSprite: " + (backgroundImage.sprite != null));
             PlaySFX(drawClip);
         }
         else if (ResultData.isWin)
         {
             backgroundImage.sprite = winSprite;
-            Debug.Log("Set background to winSprite: " + (backgroundImage.sprite != null));
             PlaySFX(winClip);
         }
         else
         {
             backgroundImage.sprite = loseSprite;
-            Debug.Log("Set background to loseSprite: " + (backgroundImage.sprite != null));
             PlaySFX(loseClip);
         }
-
 
         // タイトルボタンを表示
         backToTitleButton.gameObject.SetActive(true);
     }
+
 
     void OnBackButtonPressed()
     {
@@ -110,7 +113,7 @@ public class ResultSceneManager : MonoBehaviour
         if (fadeImage != null)
             StartCoroutine(FadeOutAndLoadTitle());
         else
-            SceneManager.LoadScene("OP01");
+            SceneManager.LoadScene("Title");
     }
 
     IEnumerator FadeOutAndLoadTitle()
@@ -134,7 +137,7 @@ public class ResultSceneManager : MonoBehaviour
             yield return null;
         }
 
-        SceneManager.LoadScene("OP01");
+        SceneManager.LoadScene("Title");
     }
 
     void PlaySFX(AudioClip clip)

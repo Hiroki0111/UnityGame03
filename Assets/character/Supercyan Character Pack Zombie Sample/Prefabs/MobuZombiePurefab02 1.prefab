@@ -638,6 +638,7 @@ MonoBehaviour:
   searchInterval: 1
   animator: {fileID: 3698324281080880965}
   isCPU: 1
+  team: 1
 --- !u!1 &3137117196091801231
 GameObject:
   m_ObjectHideFlags: 0

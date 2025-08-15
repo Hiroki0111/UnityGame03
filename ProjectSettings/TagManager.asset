@@ -9,6 +9,9 @@ TagManager:
   - FxTemporaire
   - Wall
   - Obstacle
+  - PlayerZombie
+  - BlueZombie
+  - YellowZombie
   layers:
   - Default
   - TransparentFX
