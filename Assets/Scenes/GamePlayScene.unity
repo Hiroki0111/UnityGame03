@@ -23,7 +23,7 @@ RenderSettings:
   m_AmbientSkyColor: {r: 0.212, g: 0.227, b: 0.259, a: 1}
   m_AmbientEquatorColor: {r: 0.114, g: 0.125, b: 0.133, a: 1}
   m_AmbientGroundColor: {r: 0.047, g: 0.043, b: 0.035, a: 1}
-  m_AmbientIntensity: 0
+  m_AmbientIntensity: 0.55
   m_AmbientMode: 0
   m_SubtractiveShadowColor: {r: 0.02002491, g: 0.14785682, b: 0.4716981, a: 1}
   m_SkyboxMaterial: {fileID: 2100000, guid: 47b7a45414f3b564e9e8349bfa18b29f, type: 2}
@@ -23263,28 +23263,28 @@ MonoBehaviour:
   navMeshSurface: {fileID: 910723421}
   prefabsToSpawn:
   - prefab: {fileID: 4117002412381013145, guid: 1ce9c6dd68c50434492fcb5eff697986, type: 3}
-    spawnCount: 13
+    spawnCount: 30
     isCPUZombie: 0
   - prefab: {fileID: 6056114068618329078, guid: 85ba95b20763e2040a2cb917a5c64f99, type: 3}
-    spawnCount: 10
+    spawnCount: 30
     isCPUZombie: 0
   - prefab: {fileID: 4339037814381819827, guid: 417cf636fdc3ff64dba9c05137f06ac7, type: 3}
-    spawnCount: 13
+    spawnCount: 30
     isCPUZombie: 0
   - prefab: {fileID: 1599251648775459342, guid: 83fef1691c7558b4c8eb4241aa0f3402, type: 3}
-    spawnCount: 13
+    spawnCount: 30
     isCPUZombie: 0
   - prefab: {fileID: 9019830062071026589, guid: 5815742bf07960942935c74197ab5069, type: 3}
-    spawnCount: 13
+    spawnCount: 30
     isCPUZombie: 0
   - prefab: {fileID: 6801728195244734270, guid: 2f4cacf4c8fada0479ffcbe6f56aa210, type: 3}
-    spawnCount: 12
+    spawnCount: 30
     isCPUZombie: 0
   - prefab: {fileID: 1789949333394776923, guid: cc0ff439a1ca25c4db1a8f41de6c1f63, type: 3}
-    spawnCount: 13
+    spawnCount: 30
     isCPUZombie: 0
   - prefab: {fileID: 2851317977839247185, guid: ca56986df8785434fb6f9d45251b63fc, type: 3}
-    spawnCount: 13
+    spawnCount: 30
     isCPUZombie: 0
   - prefab: {fileID: 3093904936004177487, guid: e1d0fa16a06fbe2449e9abf38126e342, type: 3}
     spawnCount: 0
@@ -40817,7 +40817,7 @@ Camera:
   m_Enabled: 1
   serializedVersion: 2
   m_ClearFlags: 1
-  m_BackGroundColor: {r: 0.19215687, g: 0.3019608, b: 0.4745098, a: 0}
+  m_BackGroundColor: {r: 0.68378425, g: 0.70403165, b: 0.735849, a: 0}
   m_projectionMatrixMode: 1
   m_GateFitMode: 2
   m_FOVAxisMode: 0
@@ -40866,13 +40866,13 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 880846334}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: -0.9085082, z: 0, w: 0.41786712}
-  m_LocalPosition: {x: 43, y: 1.7, z: 20.7}
+  m_LocalRotation: {x: 0, y: -0.5177285, z: 0, w: 0.85554504}
+  m_LocalPosition: {x: 53.02, y: 1.33, z: -19.8}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: -130.6, z: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: -62.36, z: 0}
 --- !u!114 &880846338
 MonoBehaviour:
   m_ObjectHideFlags: 0
