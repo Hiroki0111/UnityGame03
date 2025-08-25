@@ -10,30 +10,40 @@ public class AnimalWander : MonoBehaviour
 
     private NavMeshAgent agent;
     private float timer;
+    private Vector3 currentWanderTarget;
 
     void Start()
     {
         agent = GetComponent<NavMeshAgent>();
 
         // NavMeshAgent の移動挙動を強化
-        agent.stoppingDistance = 1.0f; // 壁ギリギリまで行かない
-        agent.radius = 0.8f; // 馬の体格に合わせて調整
+        agent.stoppingDistance = 1.0f;
+        agent.radius = 0.8f;
         agent.obstacleAvoidanceType = ObstacleAvoidanceType.HighQualityObstacleAvoidance;
 
         timer = wanderDelay;
+        SetNewWanderTarget();
     }
 
     void Update()
     {
         timer += Time.deltaTime;
 
-        if (timer >= wanderDelay)
-        {
-            Vector3 newPos = GetValidRandomPosition();
-            agent.SetDestination(newPos);
+        // 前方に壁や障害物があればUターン
+        CheckWallAhead();
 
+        // タイマーで次の目的地を設定
+        if (timer >= wanderDelay || agent.remainingDistance < 0.5f)
+        {
+            SetNewWanderTarget();
             timer = 0;
         }
+    }
+
+    private void SetNewWanderTarget()
+    {
+        currentWanderTarget = GetValidRandomPosition();
+        agent.SetDestination(currentWanderTarget);
     }
 
     /// <summary>
@@ -48,7 +58,6 @@ public class AnimalWander : MonoBehaviour
         {
             newPos = RandomNavSphere(transform.position, wanderRadius, -1);
             safetyCounter++;
-            // 進行方向に壁があるかをレイキャストでチェック
         } while (IsWallInPath(newPos) && safetyCounter < 10);
 
         return newPos;
@@ -61,15 +70,33 @@ public class AnimalWander : MonoBehaviour
     {
         Vector3 direction = (targetPos - transform.position).normalized;
 
-        // 高さを少し上げてレイキャスト（地面に当たらないように）
         if (Physics.Raycast(transform.position + Vector3.up, direction, out RaycastHit hit, wallCheckDistance))
         {
             if (hit.collider.CompareTag("Wall") || hit.collider.CompareTag("Obstacle"))
             {
-                return true; // 壁や障害物あり
+                return true;
             }
         }
         return false;
+    }
+
+    /// <summary>
+    /// 前方にWallやObstacleがあったらUターン
+    /// </summary>
+    private void CheckWallAhead()
+    {
+        Vector3 forward = transform.forward;
+
+        if (Physics.Raycast(transform.position + Vector3.up, forward, out RaycastHit hit, wallCheckDistance))
+        {
+            if (hit.collider.CompareTag("Wall") || hit.collider.CompareTag("Obstacle"))
+            {
+                // Uターン方向を決める
+                Vector3 newDirection = Quaternion.Euler(0f, 180f, 0f) * forward;
+                currentWanderTarget = transform.position + newDirection * wanderRadius;
+                agent.SetDestination(currentWanderTarget);
+            }
+        }
     }
 
     /// <summary>

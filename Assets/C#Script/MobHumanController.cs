@@ -24,18 +24,21 @@ public class MobHumanController : MonoBehaviour
     public float wanderRadius = 10f;
     public float wanderInterval = 5f;
 
-    private NavMeshAgent agent;
+    [Header("衝突判定用")]
+    public LayerMask obstacleLayerMask; // 壁や縦もののLayerを設定
+    public float collisionCheckDistance = 0.5f;
 
+    private NavMeshAgent agent;
     private bool isEscaping = false;
     private float escapeTimer = 0f;
-
     private float wanderTimer = 0f;
     private Vector3 currentWanderTarget;
+
+    private GameManager gm;
 
     void Start()
     {
         agent = GetComponent<NavMeshAgent>();
-
         if (agent == null)
         {
             Debug.LogError("NavMeshAgent がアタッチされていません！");
@@ -50,22 +53,44 @@ public class MobHumanController : MonoBehaviour
 
         if (animator != null)
             animator.applyRootMotion = false;
+
+        gm = GameManager.Instance;
+        gm?.RegisterHuman(gameObject);
     }
 
     void Update()
     {
-        // 「zombie」タグのオブジェクトすべてを検知（CPUもプレイヤーも）
-        GameObject[] zombies = GameObject.FindGameObjectsWithTag("zombie");
-
-        if (zombies.Length == 0 || escapeTarget == null) return;
+        if (gm == null || escapeTarget == null) return;
 
         bool zombieInView = false;
-        foreach (var zombieObj in zombies)
+
+        // プレイヤーゾンビ
+        if (gm.Player != null && IsZombieInView(gm.Player.transform))
+            zombieInView = true;
+
+        // Blue Zombies
+        if (!zombieInView)
         {
-            if (IsZombieInView(zombieObj.transform))
+            foreach (var zombie in gm.BlueZombies)
             {
-                zombieInView = true;
-                break;
+                if (IsZombieInView(zombie.transform))
+                {
+                    zombieInView = true;
+                    break;
+                }
+            }
+        }
+
+        // Yellow Zombies
+        if (!zombieInView)
+        {
+            foreach (var zombie in gm.YellowZombies)
+            {
+                if (IsZombieInView(zombie.transform))
+                {
+                    zombieInView = true;
+                    break;
+                }
             }
         }
 
@@ -77,21 +102,17 @@ public class MobHumanController : MonoBehaviour
             escapeTimer = escapeDuration;
         }
 
-        if (isEscaping)
-        {
-            EscapeToTarget();
-        }
-        else
-        {
-            NormalBehavior();
-        }
+        if (isEscaping) EscapeToTarget();
+        else NormalBehavior();
+
+        // 壁や縦ものとの衝突チェック
+        CheckCollisionAndTurn();
     }
 
     bool IsZombieInView(Transform zombieTransform)
     {
         Vector3 toZombie = zombieTransform.position - transform.position;
         float distance = toZombie.magnitude;
-
         if (distance > detectRange) return false;
 
         float angle = Vector3.Angle(transform.forward, toZombie.normalized);
@@ -100,15 +121,8 @@ public class MobHumanController : MonoBehaviour
         Vector3 eyePos = transform.position + Vector3.up * 1.5f;
         Vector3 direction = toZombie.normalized;
 
-        Debug.DrawRay(eyePos, direction * detectRange, Color.green);
-
         if (Physics.Raycast(eyePos, direction, out RaycastHit hit, detectRange))
-        {
-            if (hit.transform == zombieTransform)
-            {
-                return true;
-            }
-        }
+            return hit.transform == zombieTransform;
 
         return false;
     }
@@ -129,7 +143,6 @@ public class MobHumanController : MonoBehaviour
         {
             isEscaping = false;
             agent.speed = moveSpeed;
-
             if (animator != null)
             {
                 animator.SetBool("isRunning", false);
@@ -162,14 +175,36 @@ public class MobHumanController : MonoBehaviour
 
     Vector3 GetRandomWanderTarget()
     {
-        Vector3 randomDirection = Random.insideUnitSphere * wanderRadius;
-        randomDirection += transform.position;
-
+        Vector3 randomDirection = Random.insideUnitSphere * wanderRadius + transform.position;
         if (NavMesh.SamplePosition(randomDirection, out NavMeshHit hit, wanderRadius, NavMesh.AllAreas))
         {
             return hit.position;
         }
-
         return transform.position;
+    }
+
+    // 壁に衝突したら反転（タグWall）
+    void CheckCollisionAndTurn()
+    {
+        Vector3 forward = transform.forward;
+        float checkDistance = 0.5f;
+
+        // 前方にRayを飛ばしてWallタグを判定
+        if (Physics.Raycast(transform.position + Vector3.up * 0.5f, forward, out RaycastHit hit, checkDistance))
+        {
+            if (hit.collider.CompareTag("Wall"))
+            {
+                // 進行方向を反転してUターン
+                Vector3 newDirection = Quaternion.Euler(0f, 180f, 0f) * forward;
+                currentWanderTarget = transform.position + newDirection * wanderRadius;
+                agent.SetDestination(currentWanderTarget);
+            }
+        }
+    }
+
+
+    void OnDestroy()
+    {
+        gm?.UnregisterHuman(gameObject);
     }
 }

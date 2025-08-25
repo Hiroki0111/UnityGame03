@@ -308,7 +308,7 @@ GameObject:
   - component: {fileID: 134564316556913666}
   m_Layer: 0
   m_Name: PLMobuZombiePurefab01
-  m_TagString: zombie
+  m_TagString: BlueZombie
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -435,6 +435,7 @@ MonoBehaviour:
   searchInterval: 1
   animator: {fileID: 1443639932643490540}
   isCPU: 0
+  team: 0
 --- !u!195 &18113637632458014
 NavMeshAgent:
   m_ObjectHideFlags: 0

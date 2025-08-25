@@ -3,192 +3,120 @@ using UnityEngine.AI;
 
 public class TutorialMobu : MonoBehaviour
 {
-    [Header("移動速度")]
-    public float moveSpeed = 2f;
-    public float escapeSpeed = 15.5f;
+    [Header("移動")]
+    public float moveSpeed = 3f;
+    public float escapeSpeed = 6f;
 
-    [Header("視界検知")]
+    [Header("検知")]
     public float detectRange = 10f;
-    public float fieldOfViewAngle = 120f;
+    public float fieldOfView = 120f;
 
     [Header("逃走時間")]
     public float escapeDuration = 5f;
 
-    [Header("アニメーション")]
-    public Animator animator;
-
-    [Header("徘徊設定")]
-    public float wanderRadius = 10f;
-    public float wanderInterval = 5f;
-
     private NavMeshAgent agent;
+    private Animator animator;
     private bool isEscaping = false;
     private float escapeTimer = 0f;
-    private float wanderTimer = 0f;
-    private Vector3 currentWanderTarget;
 
     void Start()
     {
         agent = GetComponent<NavMeshAgent>();
+        if (agent != null) agent.speed = moveSpeed;
 
-        if (agent == null)
-        {
-            Debug.LogError("NavMeshAgent がアタッチされていません！");
-            enabled = false;
-            return;
-        }
-
-        agent.acceleration = 50f;
-        agent.angularSpeed = 120f;
-        agent.speed = moveSpeed;
-        agent.ResetPath();
-
-        if (animator != null)
-            animator.applyRootMotion = false;
+        animator = GetComponent<Animator>();
+        if (animator != null) animator.applyRootMotion = false;
     }
 
     void Update()
     {
-        // 「zombie」タグのオブジェクトすべてを検知
-        GameObject[] zombies = GameObject.FindGameObjectsWithTag("zombie");
-        if (zombies.Length == 0) return;
+        GameObject nearestZombie = FindNearestZombie(out float distance);
 
-        bool zombieInView = false;
-        Transform nearestZombie = null;
-        float nearestDist = Mathf.Infinity;
-
-        foreach (var zombieObj in zombies)
+        if (nearestZombie != null && distance <= detectRange)
         {
-            float dist = Vector3.Distance(transform.position, zombieObj.transform.position);
-            if (dist < nearestDist)
+            Vector3 dirToZombie = nearestZombie.transform.position - transform.position;
+            if (Vector3.Angle(transform.forward, dirToZombie) <= fieldOfView * 0.5f)
             {
-                nearestDist = dist;
-                nearestZombie = zombieObj.transform;
+                // ゾンビが視界内 → 逃げる
+                isEscaping = true;
+                escapeTimer = escapeDuration;
+                RunAwayFrom(nearestZombie.transform.position);
             }
-
-            if (IsZombieInView(zombieObj.transform))
-            {
-                zombieInView = true;
-            }
-        }
-
-        agent.speed = isEscaping ? escapeSpeed : moveSpeed;
-
-        if (!isEscaping && zombieInView)
-        {
-            isEscaping = true;
-            escapeTimer = escapeDuration;
-            // 逃げ始めるときに即座に方向を決める
-            if (nearestZombie != null)
-                RunAwayFrom(nearestZombie.position);
         }
 
         if (isEscaping)
         {
-            EscapeToTarget(nearestZombie);
-        }
-        else
-        {
-            NormalBehavior();
-        }
-    }
-
-    bool IsZombieInView(Transform zombieTransform)
-    {
-        Vector3 toZombie = zombieTransform.position - transform.position;
-        float distance = toZombie.magnitude;
-
-        if (distance > detectRange) return false;
-
-        float angle = Vector3.Angle(transform.forward, toZombie.normalized);
-        if (angle > fieldOfViewAngle * 0.5f) return false;
-
-        Vector3 eyePos = transform.position + Vector3.up * 1.5f;
-        Vector3 direction = toZombie.normalized;
-
-        if (Physics.Raycast(eyePos, direction, out RaycastHit hit, detectRange))
-        {
-            if (hit.transform == zombieTransform)
+            escapeTimer -= Time.deltaTime;
+            if (escapeTimer <= 0f)
             {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    void EscapeToTarget(Transform zombie)
-    {
-        escapeTimer -= Time.deltaTime;
-
-        if (zombie != null && agent.remainingDistance < 0.5f)
-        {
-            // ゾンビの反対方向へ新しい逃走先を決める
-            RunAwayFrom(zombie.position);
-        }
-
-        if (animator != null)
-        {
-            animator.SetBool("isWalking", false);
-            animator.SetBool("isRunning", true);
-            animator.speed = 1.5f;
-        }
-
-        if (escapeTimer <= 0f)
-        {
-            isEscaping = false;
-            agent.speed = moveSpeed;
-
-            if (animator != null)
-            {
-                animator.SetBool("isRunning", false);
-                animator.SetBool("isWalking", true);
-                animator.speed = 1f;
+                isEscaping = false;
+                if (agent != null) agent.speed = moveSpeed;
             }
         }
     }
 
-    void RunAwayFrom(Vector3 threatPosition)
+    GameObject FindNearestZombie(out float nearestDistance)
     {
-        Vector3 dirToThreat = (transform.position - threatPosition).normalized;
-        Vector3 escapeTarget = transform.position + dirToThreat * wanderRadius;
+        nearestDistance = Mathf.Infinity;
+        GameObject nearest = null;
+        GameObject[] zombies = GameObject.FindGameObjectsWithTag("BlueZombie");
+        zombies = CombineArrays(zombies, GameObject.FindGameObjectsWithTag("YellowZombie"));
 
-        // NavMesh 上の有効な位置を探す
-        if (NavMesh.SamplePosition(escapeTarget, out NavMeshHit hit, wanderRadius, NavMesh.AllAreas))
+        foreach (var z in zombies)
         {
+            float dist = Vector3.Distance(transform.position, z.transform.position);
+            if (dist < nearestDistance)
+            {
+                nearestDistance = dist;
+                nearest = z;
+            }
+        }
+        return nearest;
+    }
+
+    GameObject[] CombineArrays(GameObject[] a, GameObject[] b)
+    {
+        GameObject[] result = new GameObject[a.Length + b.Length];
+        a.CopyTo(result, 0);
+        b.CopyTo(result, a.Length);
+        return result;
+    }
+
+    void RunAwayFrom(Vector3 threatPos)
+    {
+        if (agent == null) return;
+
+        Vector3 dir = (transform.position - threatPos).normalized;
+        Vector3 target = transform.position + dir * 5f;
+
+        if (NavMesh.SamplePosition(target, out NavMeshHit hit, 5f, NavMesh.AllAreas))
+        {
+            agent.speed = escapeSpeed;
             agent.SetDestination(hit.position);
         }
     }
 
-    void NormalBehavior()
+    private void OnTriggerEnter(Collider other)
     {
-        wanderTimer += Time.deltaTime;
+        if (other == null) return;
 
-        if (wanderTimer >= wanderInterval || agent.remainingDistance < 0.5f)
+        // InfectionManager02 が存在しない場合は処理しない
+        if (InfectionManager02.Instance == null)
         {
-            currentWanderTarget = GetRandomWanderTarget();
-            agent.SetDestination(currentWanderTarget);
-            wanderTimer = 0f;
+            Debug.LogWarning("InfectionManager02 がシーンに存在しません！");
+            return;
         }
 
-        agent.speed = moveSpeed;
-
-        if (animator != null)
+        // BlueZombie に触れた場合
+        if (other.gameObject.CompareTag("BlueZombie"))
         {
-            animator.SetBool("isWalking", true);
-            animator.SetBool("isRunning", false);
-            animator.speed = 1f;
+            InfectionManager02.Instance.Infect(this.gameObject, false);
+        }
+        // YellowZombie に触れた場合
+        else if (other.gameObject.CompareTag("YellowZombie"))
+        {
+            InfectionManager02.Instance.Infect(this.gameObject, true);
         }
     }
 
-    Vector3 GetRandomWanderTarget()
-    {
-        Vector3 randomDirection = Random.insideUnitSphere * wanderRadius;
-        randomDirection += transform.position;
-
-        if (NavMesh.SamplePosition(randomDirection, out NavMeshHit hit, wanderRadius, NavMesh.AllAreas))
-        {
-            return hit.position;
-        }
-        return transform.position;
-    }
 }

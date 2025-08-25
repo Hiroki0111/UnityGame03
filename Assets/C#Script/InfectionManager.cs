@@ -18,6 +18,16 @@ public class InfectionManager : MonoBehaviour
 
     public void Infect(GameObject human, bool infectedByCPU)
     {
+        if (human == null) return;
+
+        HumanStatus status = human.GetComponent<HumanStatus>();
+        if (status != null && status.isBeingInfected) return; // すでに感染中なら無視
+
+        if (status == null) human.AddComponent<HumanStatus>();
+
+        status = human.GetComponent<HumanStatus>();
+        status.isBeingInfected = true;
+
         StartCoroutine(InfectCoroutine(human, infectedByCPU));
     }
 
@@ -25,10 +35,11 @@ public class InfectionManager : MonoBehaviour
     {
         if (human == null) yield break;
 
+        GameManager.Instance.UnregisterHuman(human);
+
         Vector3 position = human.transform.position;
         Quaternion rotation = human.transform.rotation;
 
-        // 衝突停止・吹っ飛び防止
         Collider col = human.GetComponent<Collider>();
         if (col != null) col.enabled = false;
 
@@ -42,30 +53,31 @@ public class InfectionManager : MonoBehaviour
 
         human.SetActive(false);
 
+        // パーティクル生成（破棄は5秒後）
         if (infectionParticlePrefab != null)
         {
             ParticleSystem particle = Instantiate(infectionParticlePrefab, position, Quaternion.identity);
             particle.Play();
+            Destroy(particle.gameObject, 5f);
         }
 
         yield return new WaitForSeconds(zombieSpawnDelay);
 
         GameObject zombiePrefab = infectedByCPU ? yellowZombiePrefab : blueZombiePrefab;
         GameObject newZombie = Instantiate(zombiePrefab, position, rotation);
-        newZombie.tag = "zombie";
+        newZombie.tag = infectedByCPU ? "YellowZombie" : "BlueZombie";
 
-        MobZombieController mobController = newZombie.GetComponent<MobZombieController>();
-        if (mobController != null)
-            mobController.isCPU = infectedByCPU;
+        if (infectedByCPU) GameManager.Instance.RegisterYellowZombie(newZombie);
+        else GameManager.Instance.RegisterBlueZombie(newZombie);
 
-        // GameManagerに通知
-        GameManager gm = FindObjectOfType<GameManager>();
-        if (gm != null)
-        {
-            if (infectedByCPU) gm.AddCpuConverted();
-            else gm.AddPlayerConverted();
-        }
-
-        Destroy(human);
+        MobZombieController mzc = newZombie.GetComponent<MobZombieController>();
+        if (mzc != null)
+            mzc.team = infectedByCPU ? MobZombieController.TeamType.Yellow : MobZombieController.TeamType.Blue;
     }
+}
+
+// 人間に付けるフラグ用
+public class HumanStatus : MonoBehaviour
+{
+    public bool isBeingInfected = false;
 }

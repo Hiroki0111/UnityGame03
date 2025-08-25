@@ -4,7 +4,6 @@
 TagManager:
   serializedVersion: 3
   tags:
-  - Human
   - zombie
   - FxTemporaire
   - Wall
@@ -12,6 +11,9 @@ TagManager:
   - PlayerZombie
   - BlueZombie
   - YellowZombie
+  - Human
+  - Undefined
+  - HumanIcon
   layers:
   - Default
   - TransparentFX

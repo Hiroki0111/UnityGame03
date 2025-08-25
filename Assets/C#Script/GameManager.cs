@@ -1,147 +1,139 @@
+using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
-using System.Collections;
 
 public class GameManager : MonoBehaviour
 {
-    [Header("UI参照")]
+    public static GameManager Instance { get; private set; }
+
+    private readonly List<GameObject> humans = new List<GameObject>();
+    private readonly List<GameObject> blueZombies = new List<GameObject>();
+    private readonly List<GameObject> yellowZombies = new List<GameObject>();
+
+    [Header("UI Text")]
     public Text humanCountText;
-    public Text playerZombieCountText;
-    public Text cpuZombieCountText;
-    public Text timerText; // 残り時間表示用
+    public Text blueZombieCountText;
+    public Text yellowZombieCountText;
+    public Text timerText;
 
-    [Header("ゲーム時間設定")]
-    public float gameTime = 180f; // 3分
-
-
-    private float remainingTime;
-    private int playerConverted = 0;
-    private int cpuConverted = 0;
-    private float updateInterval = 0.5f;
+    private float gameTimer = 180f;
+    private bool gameEnded = false;
     private bool isGameEnding = false;
 
-    public static bool gameEnded = false; // 感染停止フラグ
+    private bool uiDirty = true; // UI更新フラグ
 
-    [SerializeField] private AudioSource mainBGM;
-    [SerializeField] private AudioSource endSFX;
-    [SerializeField] private AudioSource endBGM;
-    [SerializeField] private UnityEngine.UI.Image fadeImage;
-    [SerializeField] private float fadeDuration = 1f;
-    void Start()
+    [Header("演出関連")]
+    public AudioSource mainBGM;
+    public AudioSource endSFX;
+    public AudioSource endBGM;
+    public Image fadeImage;
+    public float fadeDuration = 2f;
+
+    public GameObject Player { get; private set; }
+
+    private void Awake()
     {
-        remainingTime = gameTime;
-        StartCoroutine(UpdateCountsRoutine());
+        if (Instance != null && Instance != this) Destroy(gameObject);
+        else Instance = this;
+    }
 
-        // ゲーム開始時BGM再生
-        if (mainBGM != null)
+    private void Start()
+    {
+        InitializeCounts();
+        UpdateUI();
+    }
+
+    private void Update()
+    {
+        if (gameEnded) return;
+
+        gameTimer -= Time.deltaTime;
+        if (gameTimer < 0f) gameTimer = 0f;
+
+        if (uiDirty) UpdateUI();
+
+        if (gameTimer <= 0 && !isGameEnding)
+            StartCoroutine(EndGameSequence("時間切れ！"));
+        else if (humans.Count <= 0 && !isGameEnding)
+            StartCoroutine(EndGameSequence("住民が全滅！"));
+    }
+
+    private void InitializeCounts()
+    {
+        humans.Clear();
+        blueZombies.Clear();
+        yellowZombies.Clear();
+
+        foreach (var h in GameObject.FindGameObjectsWithTag("Human")) RegisterHuman(h);
+        foreach (var z in GameObject.FindGameObjectsWithTag("BlueZombie")) RegisterBlueZombie(z);
+        foreach (var z in GameObject.FindGameObjectsWithTag("YellowZombie")) RegisterYellowZombie(z);
+
+        Player = GameObject.FindGameObjectWithTag("Player");
+    }
+
+    private void UpdateUI()
+    {
+        if (humanCountText != null) humanCountText.text = $"住民: {humans.Count}";
+        if (blueZombieCountText != null) blueZombieCountText.text = $"青ゾンビ: {blueZombies.Count + (Player != null ? 1 : 0)}";
+        if (yellowZombieCountText != null) yellowZombieCountText.text = $"黄ゾンビ: {yellowZombies.Count}";
+        if (timerText != null)
         {
-            mainBGM.loop = true;
-            mainBGM.Play();
+            int m = Mathf.FloorToInt(gameTimer / 60f);
+            int s = Mathf.FloorToInt(gameTimer % 60f);
+            timerText.text = $"{m:00}:{s:00}";
         }
 
-        // フェードを透明から開始
-        if (fadeImage != null)
-        {
-            fadeImage.color = new Color(0, 0, 0, 0);
-        }
+        uiDirty = false; // 更新完了
     }
 
-    void Update()
+    public void RegisterHuman(GameObject human)
     {
-        UpdateTimer();
+        if (human == null) return;
+        if (!humans.Contains(human)) { humans.Add(human); uiDirty = true; }
+    }
+    public void UnregisterHuman(GameObject human)
+    {
+        if (human == null) return;
+        if (humans.Contains(human)) { humans.Remove(human); uiDirty = true; }
     }
 
-    IEnumerator UpdateCountsRoutine()
+    public void RegisterBlueZombie(GameObject zombie)
     {
-        while (true)
-        {
-            UpdateCounts();
-            yield return new WaitForSeconds(updateInterval);
-        }
+        if (zombie == null) return;
+        if (!blueZombies.Contains(zombie)) { blueZombies.Add(zombie); uiDirty = true; }
+    }
+    public void UnregisterBlueZombie(GameObject zombie)
+    {
+        if (zombie == null) return;
+        if (blueZombies.Contains(zombie)) { blueZombies.Remove(zombie); uiDirty = true; }
     }
 
-    void UpdateCounts()
+    public void RegisterYellowZombie(GameObject zombie)
     {
-
-
-        GameObject[] humans = GameObject.FindGameObjectsWithTag("Human");
-        int humanCount = humans.Length;
-
-        GameObject[] zombies = GameObject.FindGameObjectsWithTag("zombie");
-
-        int cpuCount = 0;
-        int playerCount = 1; // プレイヤー本体1匹
-
-        foreach (var zombie in zombies)
-        {
-            MobZombieController mobZombie = zombie.GetComponent<MobZombieController>();
-            if (mobZombie != null)
-            {
-                if (mobZombie.isCPU) cpuCount++;
-                else playerCount++;
-            }
-        }
-
-        humanCountText.text = ": " + humanCount;
-        playerZombieCountText.text = ": " + playerCount;
-        cpuZombieCountText.text = ": " + cpuCount;
-
-        // 開始から5秒経過後に全滅判定
-        if (Time.timeSinceLevelLoad > 5f && humanCount <= 0)
-        {
-            StartCoroutine(EndGameSequence());
-        }
+        if (zombie == null) return;
+        if (!yellowZombies.Contains(zombie)) { yellowZombies.Add(zombie); uiDirty = true; }
+    }
+    public void UnregisterYellowZombie(GameObject zombie)
+    {
+        if (zombie == null) return;
+        if (yellowZombies.Contains(zombie)) { yellowZombies.Remove(zombie); uiDirty = true; }
     }
 
-    void UpdateTimer()
+    public IReadOnlyList<GameObject> Humans => humans;
+    public IReadOnlyList<GameObject> BlueZombies => blueZombies;
+    public IReadOnlyList<GameObject> YellowZombies => yellowZombies;
+
+    public IEnumerator EndGameSequence(string reason)
     {
-        if (isGameEnding) return; // 終了処理中ならカウントしない
-
-        remainingTime -= Time.deltaTime;
-        if (remainingTime < 0)
-        {
-            remainingTime = 0;
-            StartCoroutine(EndGameSequence());
-        }
-
-        int minutes = Mathf.FloorToInt(remainingTime / 60f);
-        int seconds = Mathf.FloorToInt(remainingTime % 60f);
-        timerText.text = string.Format("{0:00}:{1:00}", minutes, seconds);
-    }
-
-    public void AddPlayerConverted()
-    {
-        playerConverted++;
-    }
-
-    public void AddCpuConverted()
-    {
-        cpuConverted++;
-    }
-
-    public IEnumerator EndGameSequence()
-    {
-        // すでに終了処理が始まっていたら何もしない
         if (isGameEnding) yield break;
         isGameEnding = true;
+        gameEnded = true;
 
-        gameEnded = true; // 感染停止フラグ
-
-        // --- 音・演出 ---
         if (mainBGM != null) mainBGM.Stop();
-
-        if (endSFX != null)
-        {
-            endSFX.Play();
-            yield return new WaitForSeconds(endSFX.clip.length);
-        }
-
-        if (endBGM != null)
-        {
-            endBGM.Play();
-            yield return new WaitForSeconds(1f);
-        }
+        if (endSFX != null) { endSFX.Play(); yield return new WaitForSeconds(endSFX.clip.length); }
+        if (endBGM != null) { endBGM.Play(); yield return new WaitForSeconds(1f); }
 
         if (fadeImage != null)
         {
@@ -156,39 +148,16 @@ public class GameManager : MonoBehaviour
             }
         }
 
-        // ====== 集計・保存 ======
-        int humansLeft = GameObject.FindGameObjectsWithTag("Human").Length;
-        var allZombies = GameObject.FindGameObjectsWithTag("zombie");
-        int blueCount = 0;
-        int yellowCount = 0;
-
-        foreach (var z in allZombies)
-        {
-            var pzc = z.GetComponent<PlayerZombieController>();
-            if (pzc != null)
-            {
-                if (pzc.team == PlayerZombieController.TeamType.Blue) blueCount++;
-                else yellowCount++;
-                continue;
-            }
-
-            var mzc = z.GetComponent<MobZombieController>();
-            if (mzc != null)
-            {
-                if (mzc.team == MobZombieController.TeamType.Blue) blueCount++;
-                else yellowCount++;
-            }
-        }
+        int humansLeft = humans.Count;
+        int blueCount = blueZombies.Count + (Player != null ? 1 : 0);
+        int yellowCount = yellowZombies.Count;
 
         ResultData.humanLeft = humansLeft;
         ResultData.playerConverted = blueCount;
         ResultData.cpuConverted = yellowCount;
         ResultData.isWin = blueCount > yellowCount;
-        // ==========================
+        ResultData.isDraw = blueCount == yellowCount;
 
         SceneManager.LoadScene("ResultScene");
     }
-
-
-
 }

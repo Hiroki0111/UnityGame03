@@ -261,7 +261,7 @@ GameObject:
   - component: {fileID: 1265536837321440097}
   m_Layer: 0
   m_Name: PlayerZombie_Prefab
-  m_TagString: zombie
+  m_TagString: BlueZombie
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -375,9 +375,14 @@ MonoBehaviour:
   dashButton: {fileID: 0}
   dashButtonCanvasGroup: {fileID: 0}
   dashDuration: 5
+  buttonHideTime: 3
   fadeDuration: 1
   cameraController: {fileID: 0}
   attackCooldown: 1
+  maxClimbAngle: 45
+  rayLength: 0.6
+  collisionIgnoreDuration: 0.25
+  team: 0
 --- !u!65 &1265536837321440097
 BoxCollider:
   m_ObjectHideFlags: 0

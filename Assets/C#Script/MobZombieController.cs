@@ -13,17 +13,16 @@ public class MobZombieController : MonoBehaviour
     [Header("アニメーター")]
     public Animator animator;
 
-    private GameObject targetHuman;
-    private NavMeshAgent agent;
-    private float searchTimer = 0f;
-
-    private bool isAttacking = false;
-
-    // CPUかプレイヤーかを判別
+    [Header("CPU制御")]
     public bool isCPU = false;
 
     public enum TeamType { Blue, Yellow }
     public TeamType team;
+
+    private GameObject targetHuman;
+    private NavMeshAgent agent;
+    private float searchTimer = 0f;
+    private bool isAttacking = false;
 
     void Start()
     {
@@ -31,19 +30,30 @@ public class MobZombieController : MonoBehaviour
         agent.speed = speed;
         agent.stoppingDistance = 1.0f;
 
-        if (animator == null)
-            animator = GetComponent<Animator>();
+        // NavMesh上に配置
+        if (!agent.isOnNavMesh)
+        {
+            agent.enabled = false;
+            agent.enabled = true;
+            agent.Warp(transform.position);
+        }
 
-        if (animator == null)
-            Debug.LogWarning("Animatorが設定されていません。");
+        if (animator == null) animator = GetComponent<Animator>();
+
+        var gm = GameManager.Instance;
+        if (gm != null)
+        {
+            if (team == TeamType.Blue) gm.RegisterBlueZombie(gameObject);
+            else gm.RegisterYellowZombie(gameObject);
+        }
     }
 
     void Update()
     {
         if (isAttacking) return;
 
+        // ターゲット更新
         searchTimer += Time.deltaTime;
-
         if (searchTimer >= searchInterval)
         {
             GameObject[] humans = GameObject.FindGameObjectsWithTag("Human");
@@ -51,12 +61,13 @@ public class MobZombieController : MonoBehaviour
             searchTimer = 0f;
         }
 
-        if (targetHuman != null)
+        // 移動
+        if (targetHuman != null && agent.isOnNavMesh && agent.enabled)
         {
             agent.SetDestination(targetHuman.transform.position);
-            bool isMoving = agent.velocity.magnitude > 0.1f;
+
             if (animator != null)
-                animator.SetBool("isWalking", isMoving);
+                animator.SetBool("isWalking", agent.velocity.magnitude > 0.1f);
         }
         else
         {
@@ -85,65 +96,43 @@ public class MobZombieController : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
-        Debug.Log("OnTriggerEnter: InfectionManager.Instance = " + InfectionManager.Instance);
-
         if (!other.CompareTag("Human") || isAttacking) return;
 
         isAttacking = true;
-        agent.isStopped = true;
+        if (agent != null && agent.isOnNavMesh && agent.enabled)
+            agent.isStopped = true;
 
-        if (animator != null)
-            animator.SetTrigger("Attack");
-        else
-            Debug.LogWarning("Animatorが設定されていません。");
+        if (animator != null) animator.SetTrigger("Attack");
 
         InfectHuman(other.gameObject);
-
         Invoke(nameof(ResetAttack), 1.0f);
     }
 
-
     private void OnTriggerStay(Collider other)
     {
-        if (other.CompareTag("Human"))
+        if (other.CompareTag("Human") && animator != null)
         {
-            if (animator != null)
-            {
-                AnimatorStateInfo state = animator.GetCurrentAnimatorStateInfo(0);
-                if (state.IsName("Attack"))
-                {
-                    InfectHuman(other.gameObject);
-                }
-            }
-            else
-            {
-                Debug.LogWarning("Animatorが設定されていません。");
-            }
+            AnimatorStateInfo state = animator.GetCurrentAnimatorStateInfo(0);
+            if (state.IsName("Attack"))
+                InfectHuman(other.gameObject);
         }
     }
 
     private void InfectHuman(GameObject human)
     {
-        if (human != null && human.CompareTag("Human"))
+        if (human != null && human.CompareTag("Human") && InfectionManager.Instance != null)
         {
-            if (InfectionManager.Instance != null)
-            {
-                InfectionManager.Instance.Infect(human, isCPU);
-            }
+            if (CompareTag("Player") || team == TeamType.Blue)
+                InfectionManager.Instance.Infect(human, false);
             else
-            {
-                Debug.LogWarning("InfectionManagerのInstanceがありません。");
-            }
-        }
-        else
-        {
-            Debug.LogWarning("InfectHuman: humanがnullかタグがHumanではありません。");
+                InfectionManager.Instance.Infect(human, true);
         }
     }
 
     private void ResetAttack()
     {
         isAttacking = false;
-        agent.isStopped = false;
+        if (agent != null && agent.isOnNavMesh && agent.enabled)
+            agent.isStopped = false;
     }
 }

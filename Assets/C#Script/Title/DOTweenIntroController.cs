@@ -139,4 +139,6 @@ public class DOTweenIntroController : MonoBehaviour
         // --- シーン切替 ---
         seq.AppendCallback(() => SceneManager.LoadScene(nextSceneName));
     }
+    public void GoToNextScene()
+    { if (!string.IsNullOrEmpty(nextSceneName)) SceneManager.LoadScene("OP01"); }
 }

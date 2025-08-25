@@ -22,9 +22,9 @@ public class ResultSceneManager : MonoBehaviour
     public Button backToTitleButton;
 
     [Header("BGMとSE")]
-    public AudioSource bgmSource;        // BGM用AudioSource
-    public AudioClip bgmClip;           // BGMクリップ
-    public AudioSource seSource;        // 効果音用AudioSource
+    public AudioSource bgmSource;
+    public AudioClip bgmClip;
+    public AudioSource seSource;
     public AudioClip winClip;
     public AudioClip loseClip;
     public AudioClip drawClip;
@@ -37,53 +37,43 @@ public class ResultSceneManager : MonoBehaviour
 
     void Start()
     {
-        // UI設定確認
-        if (humanLeftText == null || playerConvertedText == null || cpuConvertedText == null)
-            Debug.LogError("ResultSceneManager: テキストUIが設定されていません！");
-        if (backgroundImage == null)
-            Debug.LogError("ResultSceneManager: 背景Imageが設定されていません！");
-        if (backToTitleButton == null)
-            Debug.LogError("ResultSceneManager: タイトルに戻るボタンが設定されていません！");
         if (fadeImage != null)
             fadeImage.gameObject.SetActive(false);
 
-        // BGM再生（ループ）
         if (bgmSource != null && bgmClip != null)
         {
             bgmSource.clip = bgmClip;
             bgmSource.loop = true;
+            bgmSource.volume = 1f;
             bgmSource.Play();
         }
 
-        // ボタンは最初非表示
         backToTitleButton.gameObject.SetActive(false);
         backToTitleButton.onClick.RemoveAllListeners();
         backToTitleButton.onClick.AddListener(OnBackButtonPressed);
 
-        // 結果表示開始
         StartCoroutine(ShowResultsCoroutine());
     }
 
     IEnumerator ShowResultsCoroutine()
     {
-        // 文字3回表示（1.5秒間隔でSEを鳴らす）
+        // 青ゾンビ
         playerConvertedText.text = "青ゾンビの数: " + ResultData.playerConverted;
-        PlaySFX(tuika01Clip); // ここは任意の文字出現音
+        PlaySFX(tuika01Clip);
         yield return new WaitForSeconds(1.5f);
 
+        // 黄ゾンビ
         cpuConvertedText.text = "黄ゾンビの数: " + ResultData.cpuConverted;
         PlaySFX(tuika01Clip);
         yield return new WaitForSeconds(1.5f);
 
+        // 残り住人
         humanLeftText.text = "残り住人: " + ResultData.humanLeft;
         PlaySFX(tuika01Clip);
-        yield return new WaitForSeconds(1.5f);
+        yield return new WaitForSeconds(2f);
 
-        // 文字3回表示後、2秒待って背景画像表示＆SE
-        yield return new WaitForSeconds(1f);
-
-        bool isDraw = ResultData.playerConverted == ResultData.cpuConverted;
-        if (isDraw)
+        // 勝敗表示
+        if (ResultData.isDraw)
         {
             backgroundImage.sprite = drawSprite;
             PlaySFX(drawClip);
@@ -99,17 +89,13 @@ public class ResultSceneManager : MonoBehaviour
             PlaySFX(loseClip);
         }
 
-        // タイトルボタンを表示
         backToTitleButton.gameObject.SetActive(true);
     }
 
-
     void OnBackButtonPressed()
     {
-        // ボタンSE
         PlaySFX(backButtonClip);
 
-        // フェードアウトしてタイトルに戻る
         if (fadeImage != null)
             StartCoroutine(FadeOutAndLoadTitle());
         else
@@ -130,11 +116,16 @@ public class ResultSceneManager : MonoBehaviour
             color.a = Mathf.Clamp01(timer / fadeDuration);
             fadeImage.color = color;
 
-            // BGMフェードアウト
             if (bgmSource != null)
                 bgmSource.volume = 1f - Mathf.Clamp01(timer / fadeDuration);
 
             yield return null;
+        }
+
+        if (bgmSource != null)
+        {
+            bgmSource.Stop();
+            bgmSource.volume = 1f;
         }
 
         SceneManager.LoadScene("Title");

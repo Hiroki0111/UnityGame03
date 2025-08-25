@@ -30,8 +30,9 @@ public class TutorialManager : MonoBehaviour
     public Text blueZombieCountText;
     public Text yellowZombieCountText;
 
+    // 内部保持（必要なら参照用）
     private int humanCount = 0;
-    private int blueZombieCount = 1;  // プレイヤー1人
+    private int blueZombieCount = 0;
     private int yellowZombieCount = 0;
 
     private void Awake()
@@ -50,61 +51,51 @@ public class TutorialManager : MonoBehaviour
 
     private void Start()
     {
-        InitializeCounts();
+        RecountAndUpdateUI();
     }
 
     /// <summary>
-    /// 初期人数カウント（青/黄ゾンビ、Human）を正確に設定
+    /// タグで人数を再集計してUIへ反映（常に正確）
     /// </summary>
-    private void InitializeCounts()
+    public void RecountAndUpdateUI()
     {
-        // 人間の数
-        humanCount = GameObject.FindGameObjectsWithTag("Human").Length;
-
-        // 黄色ゾンビをシーン内でカウント
-        yellowZombieCount = 0;
-        GameObject[] zombies = GameObject.FindGameObjectsWithTag("zombie");
-        foreach (var z in zombies)
-        {
-            MobZombieController mob = z.GetComponent<MobZombieController>();
-            if (mob != null && mob.isCPU)
-                yellowZombieCount++;
-        }
+        humanCount = SafeCountByTag("Human");
+        blueZombieCount = SafeCountByTag("BlueZombie");
+        yellowZombieCount = SafeCountByTag("YellowZombie");
 
         UpdateCountUI();
     }
 
     /// <summary>
-    /// 人間感染時に呼ばれる
+    /// 既存呼び出し互換用：感染後に呼ぶと再集計する
     /// </summary>
     public void OnHumanInfected(bool becameBlue)
     {
-        humanCount = Mathf.Max(humanCount - 1, 0);
-
-        if (becameBlue)
-            blueZombieCount++;
-        else
-            yellowZombieCount++;
-
-        UpdateCountUI();
+        RecountAndUpdateUI();
 
         // チュートリアルコメント非表示
-        foreach (var comment in tutorialComments)
-            comment.SetActive(false);
+        if (tutorialComments != null)
+        {
+            foreach (var comment in tutorialComments)
+                if (comment) comment.SetActive(false);
+        }
 
         // スタートボタン表示
         if (startButton != null)
             startButton.gameObject.SetActive(true);
     }
 
+    private int SafeCountByTag(string tag)
+    {
+        try { return GameObject.FindGameObjectsWithTag(tag).Length; }
+        catch { return 0; } // タグ未登録時の保護
+    }
+
     private void UpdateCountUI()
     {
-        if (humanCountText != null)
-            humanCountText.text = ": " + humanCount;
-        if (blueZombieCountText != null)
-            blueZombieCountText.text = ": " + blueZombieCount;
-        if (yellowZombieCountText != null)
-            yellowZombieCountText.text = ": " + yellowZombieCount;
+        if (humanCountText != null) humanCountText.text = ": " + humanCount;
+        if (blueZombieCountText != null) blueZombieCountText.text = ": " + blueZombieCount;
+        if (yellowZombieCountText != null) yellowZombieCountText.text = ": " + yellowZombieCount;
     }
 
     private void OnStartButtonPressed()

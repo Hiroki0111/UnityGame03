@@ -485,7 +485,7 @@ GameObject:
   - component: {fileID: 3419651440701309968}
   m_Layer: 0
   m_Name: MobuZombiePurefab02 1
-  m_TagString: zombie
+  m_TagString: YellowZombie
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0

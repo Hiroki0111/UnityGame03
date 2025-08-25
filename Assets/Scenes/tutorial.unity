@@ -129,11 +129,6 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 4339037814381819827, guid: 417cf636fdc3ff64dba9c05137f06ac7, type: 3}
   m_PrefabInstance: {fileID: 1614017943}
   m_PrefabAsset: {fileID: 0}
---- !u!95 &45312004 stripped
-Animator:
-  m_CorrespondingSourceObject: {fileID: 401993230070986535, guid: 417cf636fdc3ff64dba9c05137f06ac7, type: 3}
-  m_PrefabInstance: {fileID: 1614017943}
-  m_PrefabAsset: {fileID: 0}
 --- !u!114 &45312006
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -146,14 +141,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 79d90df217e23f9429a8d8c2e5c9cd46, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  moveSpeed: 2
-  escapeSpeed: 3
+  moveSpeed: 3
+  escapeSpeed: 6
   detectRange: 10
-  fieldOfViewAngle: 120
+  fieldOfView: 120
   escapeDuration: 5
-  animator: {fileID: 45312004}
-  wanderRadius: 10
-  wanderInterval: 5
 --- !u!1001 &56559948
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -429,6 +421,10 @@ PrefabInstance:
       value: InfectionManager
       objectReference: {fileID: 0}
     - target: {fileID: 5126977922711250491, guid: 48116e4c695ca754aa42f13344df6b46, type: 3}
+      propertyPath: m_Enabled
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5126977922711250491, guid: 48116e4c695ca754aa42f13344df6b46, type: 3}
       propertyPath: infectionParticlePrefab
       value: 
       objectReference: {fileID: 3706408164693207181, guid: a640717c58e42c243a9b1f215f1de89e, type: 3}
@@ -472,10 +468,14 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    m_RemovedComponents: []
+    m_RemovedComponents:
+    - {fileID: 5126977922711250491, guid: 48116e4c695ca754aa42f13344df6b46, type: 3}
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 1777047276566982649, guid: 48116e4c695ca754aa42f13344df6b46, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 522204308}
   m_SourcePrefab: {fileID: 100100000, guid: 48116e4c695ca754aa42f13344df6b46, type: 3}
 --- !u!4 &271439671 stripped
 Transform:
@@ -806,6 +806,22 @@ PrefabInstance:
     - target: {fileID: 6088772922273863742, guid: cda58d8dc5865774aae7f8641cb08d92, type: 3}
       propertyPath: m_AnchoredPosition.y
       value: -48
+      objectReference: {fileID: 0}
+    - target: {fileID: 6863456619127556469, guid: cda58d8dc5865774aae7f8641cb08d92, type: 3}
+      propertyPath: m_text
+      value: MAP
+      objectReference: {fileID: 0}
+    - target: {fileID: 6863456619127556469, guid: cda58d8dc5865774aae7f8641cb08d92, type: 3}
+      propertyPath: m_fontSize
+      value: 56.74
+      objectReference: {fileID: 0}
+    - target: {fileID: 6863456619127556469, guid: cda58d8dc5865774aae7f8641cb08d92, type: 3}
+      propertyPath: m_fontStyle
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 6863456619127556469, guid: cda58d8dc5865774aae7f8641cb08d92, type: 3}
+      propertyPath: m_fontSizeBase
+      value: 56.74
       objectReference: {fileID: 0}
     - target: {fileID: 7133500208112470200, guid: cda58d8dc5865774aae7f8641cb08d92, type: 3}
       propertyPath: m_AnchoredPosition.x
@@ -1271,6 +1287,27 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: ae9772ea62bbc724eb9b8ef81109f733, type: 3}
+--- !u!1 &522204305 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 1777047276566982649, guid: 48116e4c695ca754aa42f13344df6b46, type: 3}
+  m_PrefabInstance: {fileID: 243830709}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &522204308
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 522204305}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f77f9d3dcdbebfd4e86733f230417f4e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  blueZombiePrefab: {fileID: 5937514110555992044, guid: edb3906fcf7e8104591d884432a657eb, type: 3}
+  yellowZombiePrefab: {fileID: 3093904936004177487, guid: e1d0fa16a06fbe2449e9abf38126e342, type: 3}
+  infectionParticlePrefab: {fileID: 3706408164693207181, guid: a640717c58e42c243a9b1f215f1de89e, type: 3}
+  zombieSpawnDelay: 0.3
 --- !u!1001 &528326782
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -3293,7 +3330,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 1142.5, y: 30.224}
+  m_AnchoredPosition: {x: 919, y: 0.0000019073}
   m_SizeDelta: {x: 357, y: 191.0935}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1112373235
@@ -4246,14 +4283,14 @@ RectTransform:
   m_GameObject: {fileID: 1554518635}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
+  m_LocalScale: {x: 1.12, y: 1.12, z: 1.12}
+  m_ConstrainProportionsScale: 1
   m_Children: []
   m_Father: {fileID: 399031105}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 553, y: -16}
+  m_AnchoredPosition: {x: 833, y: 73.515}
   m_SizeDelta: {x: 674, y: 194.28}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1554518637
@@ -4289,7 +4326,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: "\u2462\u30AB\u30E1\u30E9\u3092\u30B9\u30EF\u30A4\u30D7\u3057\u3066\n\u5DE6\u53F3\u306B\u52D5\u304B\u305B\u307E\u3059\u3002\n\u30EA\u30BB\u30C3\u30C8\u30DC\u30BF\u30F3\u3082\u62BC\u305B\u307E\u3059\u3002"
+  m_Text: "\u2462MAP\u3092\u8868\u793A\u3059\u308B\u753B\u9762"
 --- !u!222 &1554518638
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -4949,12 +4986,12 @@ MonoBehaviour:
   joystick: {fileID: 399031107}
   animator: {fileID: 1689629184}
   rb: {fileID: 1689629183}
+  maxClimbAngle: 45
+  rayLength: 0.6
   dashButton: {fileID: 1366486267}
-  dashDuration: 5
   buttonHideTime: 3
   fadeDuration: 1
-  attackCooldown: 1
-  cameraController: {fileID: 2144898898}
+  collisionIgnoreDuration: 0.25
 --- !u!4 &1723507508 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 4586821900076392, guid: ae9772ea62bbc724eb9b8ef81109f733, type: 3}
@@ -5578,7 +5615,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 478963330361996670, guid: 64e580d64ec59c04db58964ada7f9103, type: 3}
       propertyPath: m_TagString
-      value: zombie
+      value: BlueZombie
       objectReference: {fileID: 0}
     - target: {fileID: 1349637247397237701, guid: 64e580d64ec59c04db58964ada7f9103, type: 3}
       propertyPath: m_Size.y
@@ -6301,12 +6338,16 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   target: {fileID: 1689629179}
+  joystick: {fileID: 0}
   distanceBehind: 2.76
   heightOffset: 1.5
   heightFollowFactor: 1
   positionFollowSpeed: 5
   rotationFollowSpeed: 10
   swipeSensitivity: 0.2
+  overheadOffset: {x: 0, y: 15, z: 0}
+  overheadRotationEuler: {x: 90, y: 0, z: 0}
+  mode: 0
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
